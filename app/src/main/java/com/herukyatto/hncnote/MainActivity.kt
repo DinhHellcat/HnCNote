@@ -8,6 +8,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import android.content.Intent
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,7 +24,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val recyclerView = findViewById<RecyclerView>(R.id.notesRecyclerView)
-        val adapter = NoteAdapter() // Tạo adapter rỗng
+        val adapter = NoteAdapter { selectedNote ->
+            // Đây là hành động sẽ xảy ra khi một ghi chú được nhấn
+            val intent = Intent(this@MainActivity, NoteEditorActivity::class.java)
+            // Đính kèm đối tượng Note được chọn vào Intent
+            // "EXTRA_NOTE" là một cái "chìa khóa" để bên nhận biết phải lấy cái gì.
+            intent.putExtra("EXTRA_NOTE", selectedNote)
+            // (Ở bước sau chúng ta sẽ đính kèm dữ liệu của selectedNote vào intent)
+            startActivity(intent)
+        }
         recyclerView.adapter = adapter
         recyclerView.layoutManager = GridLayoutManager(this, 2)
 

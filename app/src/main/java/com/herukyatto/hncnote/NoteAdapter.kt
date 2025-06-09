@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-class NoteAdapter : ListAdapter<Note, NoteAdapter.NoteViewHolder>(NotesComparator()) {
+class NoteAdapter(private val onItemClicked: (Note) -> Unit) : ListAdapter<Note, NoteAdapter.NoteViewHolder>(NotesComparator()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -18,7 +18,9 @@ class NoteAdapter : ListAdapter<Note, NoteAdapter.NoteViewHolder>(NotesComparato
 
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
         val current = getItem(position)
-        holder.bind(current.title, current.content)
+        holder.itemView.setOnClickListener {
+            onItemClicked(current)
+        }
     }
 
     class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

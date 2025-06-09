@@ -14,4 +14,4 @@ data class Note(
 
     @ColumnInfo(name = "note_content")
     val content: String
-)
+) : java.io.Serializable
