@@ -24,15 +24,27 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val recyclerView = findViewById<RecyclerView>(R.id.notesRecyclerView)
-        val adapter = NoteAdapter { selectedNote ->
-            // Đây là hành động sẽ xảy ra khi một ghi chú được nhấn
-            val intent = Intent(this@MainActivity, NoteEditorActivity::class.java)
-            // Đính kèm đối tượng Note được chọn vào Intent
-            // "EXTRA_NOTE" là một cái "chìa khóa" để bên nhận biết phải lấy cái gì.
-            intent.putExtra("EXTRA_NOTE", selectedNote)
-            // (Ở bước sau chúng ta sẽ đính kèm dữ liệu của selectedNote vào intent)
-            startActivity(intent)
-        }
+        val adapter = NoteAdapter(
+            // Xử lý click ngắn (để sửa)
+            onItemClicked = { selectedNote ->
+                val intent = Intent(this@MainActivity, NoteEditorActivity::class.java)
+                intent.putExtra("EXTRA_NOTE", selectedNote)
+                startActivity(intent)
+            },
+            // Xử lý click giữ (để xóa)
+            onItemLongClicked = { selectedNote ->
+                // Tạo và hiển thị Dialog xác nhận
+                com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                    .setTitle("Xác nhận xóa")
+                    .setMessage("Bạn có chắc muốn xóa ghi chú '${selectedNote.title}'?")
+                    .setPositiveButton("Xóa") { _, _ ->
+                        // Nếu người dùng nhấn "Xóa", gọi ViewModel để xóa
+                        noteViewModel.delete(selectedNote)
+                    }
+                    .setNegativeButton("Hủy", null) // Nhấn "Hủy" thì không làm gì cả
+                    .show()
+            }
+        )
         recyclerView.adapter = adapter
         recyclerView.layoutManager = GridLayoutManager(this, 2)
 
