@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">HnCNote</string>
+    <string name="add_new_note">Add new note</string>
 </resources>

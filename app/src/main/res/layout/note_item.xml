@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/note_item_background"
+    android:layout_margin="8dp"
+    android:padding="16dp"
+    android:minHeight="180dp">
+
+    <TextView
+        android:id="@+id/noteTitleTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        tools:text="Đây là Tiêu đề của Ghi chú" />
+
+    <TextView
+        android:id="@+id/noteContentTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:maxLines="5"
+        android:ellipsize="end"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="14sp"
+        tools:text="Nội dung của ghi chú sẽ được hiển thị ở đây. Nó có thể dài hơn một chút để lấp đầy không gian." />
+
+</LinearLayout>
