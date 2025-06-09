@@ -13,5 +13,8 @@ data class Note(
     val title: String,
 
     @ColumnInfo(name = "note_content")
-    val content: String
+    val content: String,
+
+    @ColumnInfo(name = "last_modified")
+    val lastModified: Long
 ) : java.io.Serializable

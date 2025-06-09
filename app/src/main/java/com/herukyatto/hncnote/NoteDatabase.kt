@@ -13,7 +13,7 @@ import androidx.room.RoomDatabase
  * bạn phải tăng version này lên (từ 1 thành 2, 3...) và cung cấp một chiến lược di chuyển dữ liệu (Migration).
  * exportSchema = false: Tắt việc xuất cấu trúc database ra file JSON, không cần thiết cho dự án này.
  */
-@Database(entities = [Note::class], version = 1, exportSchema = false)
+@Database(entities = [Note::class], version = 2, exportSchema = false)
 abstract class NoteDatabase : RoomDatabase() {
 
     // Cung cấp một hàm trừu tượng để các thành phần khác có thể lấy ra DAO.
@@ -39,7 +39,9 @@ abstract class NoteDatabase : RoomDatabase() {
                     context.applicationContext,
                     NoteDatabase::class.java,
                     "note_database" // Đây sẽ là tên file database được tạo trên thiết bị.
-                ).build()
+                )
+                .fallbackToDestructiveMigration()
+                .build()
                 INSTANCE = instance
                 // Trả về instance vừa tạo
                 instance

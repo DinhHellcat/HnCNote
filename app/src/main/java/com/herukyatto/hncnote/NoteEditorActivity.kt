@@ -52,6 +52,7 @@ class NoteEditorActivity : AppCompatActivity() {
     private fun saveNoteAndFinish() {
         val title = titleEditText.text.toString()
         val content = contentEditText.text.toString()
+        val currentTime = System.currentTimeMillis()
 
         // Nếu không có tiêu đề và nội dung, coi như không tạo/sửa, chỉ thoát
         if (title.isBlank() && content.isBlank()) {
@@ -61,12 +62,20 @@ class NoteEditorActivity : AppCompatActivity() {
 
         if (currentNote != null) {
             // --- TRƯỜNG HỢP CẬP NHẬT GHI CHÚ ĐÃ CÓ ---
-            val updatedNote = currentNote!!.copy(title = title, content = content)
+            val updatedNote = currentNote!!.copy(
+                title = title,
+                content = content,
+                lastModified = currentTime // Gán thời gian mới
+            )
             noteViewModel.update(updatedNote)
         } else {
             // --- TRƯỜNG HỢP TẠO GHI CHÚ MỚI ---
             // (Chúng ta sẽ làm chức năng này sau khi click nút +)
-            val newNote = Note(title = title, content = content)
+            val newNote = Note(
+                title = title,
+                content = content,
+                lastModified = currentTime
+            )
             noteViewModel.insert(newNote)
         }
 

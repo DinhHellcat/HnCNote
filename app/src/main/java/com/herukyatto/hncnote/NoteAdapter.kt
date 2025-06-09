@@ -7,6 +7,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class NoteAdapter(
     private val onItemClicked: (Note) -> Unit,
@@ -21,7 +24,8 @@ class NoteAdapter(
 
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
         val current = getItem(position)
-        holder.bind(current.title, current.content)
+
+        // THÊM LẠI BỘ LẮNG NGHE SỰ KIỆN CLICK NGẮN
         holder.itemView.setOnClickListener {
             onItemClicked(current)
         }
@@ -30,20 +34,36 @@ class NoteAdapter(
             onItemLongClicked(current)
             true
         }
+        holder.bind(current)
     }
 
     class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val titleTextView: TextView = itemView.findViewById(R.id.noteTitleTextView)
         private val contentTextView: TextView = itemView.findViewById(R.id.noteContentTextView)
+        // Đã xóa tham chiếu đến noteDateTextView
 
-        fun bind(title: String?, content: String?) {
-            titleTextView.text = title
-            contentTextView.text = content
+        fun bind(note: Note) {
+            // XỬ LÝ VẤN ĐỀ 1 & 3
+            if (note.title.isNotBlank()) {
+                titleTextView.text = note.title
+                // Đảm bảo text style được reset về mặc định (in đậm)
+                titleTextView.setTypeface(null, android.graphics.Typeface.BOLD)
+            } else {
+                // Nếu tiêu đề trống, hiển thị ngày tháng thay thế
+                titleTextView.text = formatTimestamp(note.lastModified)
+                // Vẫn giữ in đậm để giống tiêu đề
+                titleTextView.setTypeface(null, android.graphics.Typeface.BOLD)
+            }
+            contentTextView.text = note.content
+            // Không còn cần set text cho dateTextView nữa
+        }
+
+        private fun formatTimestamp(timestamp: Long): String {
+            val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+            return sdf.format(Date(timestamp))
         }
     }
 
-    // NotesComparator giúp ListAdapter biết được item nào đã thay đổi
-    // để cập nhật giao diện một cách hiệu quả.
     class NotesComparator : DiffUtil.ItemCallback<Note>() {
         override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean {
             return oldItem.id == newItem.id
