@@ -1,5 +1,8 @@
 package com.herukyatto.hncnote
 
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.BackgroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +19,8 @@ class NoteAdapter(
     private val onItemLongClicked: (Note) -> Unit
 ) : ListAdapter<Note, NoteAdapter.NoteViewHolder>(NotesComparator()) {
 
+    var searchQuery: String = ""
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.note_item, parent, false)
@@ -24,38 +29,43 @@ class NoteAdapter(
 
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
         val current = getItem(position)
-
-        // THÊM LẠI BỘ LẮNG NGHE SỰ KIỆN CLICK NGẮN
-        holder.itemView.setOnClickListener {
-            onItemClicked(current)
-        }
-
+        holder.itemView.setOnClickListener { onItemClicked(current) }
         holder.itemView.setOnLongClickListener {
             onItemLongClicked(current)
             true
         }
-        holder.bind(current)
+        holder.bind(current, searchQuery)
     }
 
     class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val titleTextView: TextView = itemView.findViewById(R.id.noteTitleTextView)
         private val contentTextView: TextView = itemView.findViewById(R.id.noteContentTextView)
-        // Đã xóa tham chiếu đến noteDateTextView
 
-        fun bind(note: Note) {
-            // XỬ LÝ VẤN ĐỀ 1 & 3
-            if (note.title.isNotBlank()) {
-                titleTextView.text = note.title
-                // Đảm bảo text style được reset về mặc định (in đậm)
-                titleTextView.setTypeface(null, android.graphics.Typeface.BOLD)
-            } else {
-                // Nếu tiêu đề trống, hiển thị ngày tháng thay thế
-                titleTextView.text = formatTimestamp(note.lastModified)
-                // Vẫn giữ in đậm để giống tiêu đề
-                titleTextView.setTypeface(null, android.graphics.Typeface.BOLD)
+        fun bind(note: Note, query: String) {
+            val fakeTitle = if (note.title.isNotBlank()) note.title else formatTimestamp(note.lastModified)
+
+            // Lấy màu từ resources
+            val highlightColor = itemView.context.getColor(R.color.search_highlight_color)
+
+            titleTextView.text = highlightText(fakeTitle, query, highlightColor)
+            contentTextView.text = highlightText(note.content, query, highlightColor)
+        }
+
+        // Sửa lại hàm highlightText để nhận vào màu
+        private fun highlightText(text: String, query: String, color: Int): SpannableString {
+            val spannableString = SpannableString(text)
+            if (query.isNotBlank()) {
+                val regex = query.toRegex(RegexOption.IGNORE_CASE)
+                regex.findAll(text).forEach { matchResult ->
+                    spannableString.setSpan(
+                        BackgroundColorSpan(color), // Dùng màu nền
+                        matchResult.range.first,
+                        matchResult.range.last + 1,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
             }
-            contentTextView.text = note.content
-            // Không còn cần set text cho dateTextView nữa
+            return spannableString
         }
 
         private fun formatTimestamp(timestamp: Long): String {

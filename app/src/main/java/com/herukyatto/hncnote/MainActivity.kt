@@ -52,9 +52,29 @@ class MainActivity : AppCompatActivity() {
         // Bất cứ khi nào danh sách ghi chú trong database thay đổi,
         // đoạn code này sẽ được chạy.
         noteViewModel.allNotes.observe(this) { notes ->
-            // Khi có dữ liệu mới, gửi nó cho adapter để cập nhật UI.
-            notes?.let { adapter.submitList(it) }
+            notes?.let {
+                adapter.submitList(it)
+                // Lấy từ khóa trực tiếp từ searchView
+                val searchView = findViewById<androidx.appcompat.widget.SearchView>(R.id.searchView)
+                adapter.searchQuery = searchView.query.toString()
+            }
         }
+
+        val searchView = findViewById<androidx.appcompat.widget.SearchView>(R.id.searchView)
+        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                val query = newText.orEmpty()
+                noteViewModel.setSearchQuery(query)
+                // Cập nhật từ khóa cho adapter và yêu cầu vẽ lại
+                adapter.searchQuery = query
+                adapter.notifyDataSetChanged() // Yêu cầu vẽ lại để highlight
+                return true
+            }
+        })
 
         val fab = findViewById<FloatingActionButton>(R.id.addNoteFab)
         fab.setOnClickListener {
