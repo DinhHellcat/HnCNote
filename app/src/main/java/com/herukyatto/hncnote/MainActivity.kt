@@ -58,9 +58,12 @@ class MainActivity : AppCompatActivity() {
 
         val fab = findViewById<FloatingActionButton>(R.id.addNoteFab)
         fab.setOnClickListener {
-            // Tạm thời thêm một note mới để kiểm tra
-            val newNote = Note(title = "Ghi chú mới", content = "Nội dung được thêm từ nút FAB.")
-            noteViewModel.insert(newNote)
+            // Tạo một Intent để mở NoteEditorActivity
+            val intent = Intent(this@MainActivity, NoteEditorActivity::class.java)
+
+            // Quan trọng: Lần này chúng ta KHÔNG đính kèm "EXTRA_NOTE".
+            // Điều này báo cho NoteEditorActivity biết đây là trường hợp "tạo mới".
+            startActivity(intent)
         }
     }
 }
