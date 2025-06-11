@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">HnCNote</string>
     <string name="add_new_note">Add new note</string>
+    <string name="title_hint">Tiêu đề</string>
+    <string name="content_hint">Nội dung</string>
+    <string name="add_new_note_description">Thêm ghi chú mới</string>
 </resources>

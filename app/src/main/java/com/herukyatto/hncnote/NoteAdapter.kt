@@ -55,10 +55,14 @@ class NoteAdapter(
         private fun highlightText(text: String, query: String, color: Int): SpannableString {
             val spannableString = SpannableString(text)
             if (query.isNotBlank()) {
-                val regex = query.toRegex(RegexOption.IGNORE_CASE)
-                regex.findAll(text).forEach { matchResult ->
+                // Bỏ dấu cả text và query để tìm vị trí
+                val unaccentedText = StringUtils.unaccent(text)
+                val unaccentedQuery = StringUtils.unaccent(query)
+
+                val regex = unaccentedQuery.toRegex(RegexOption.IGNORE_CASE)
+                regex.findAll(unaccentedText).forEach { matchResult ->
                     spannableString.setSpan(
-                        BackgroundColorSpan(color), // Dùng màu nền
+                        BackgroundColorSpan(color),
                         matchResult.range.first,
                         matchResult.range.last + 1,
                         Spannable.SPAN_EXCLUSIVE_EXCLUSIVE

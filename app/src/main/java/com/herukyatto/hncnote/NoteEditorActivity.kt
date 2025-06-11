@@ -27,6 +27,7 @@ class NoteEditorActivity : AppCompatActivity() {
 
         // Lấy dữ liệu Note được gửi qua
         if (intent.hasExtra("EXTRA_NOTE")) {
+            @Suppress("DEPRECATION")
             currentNote = intent.getSerializableExtra("EXTRA_NOTE") as? Note
         }
 
