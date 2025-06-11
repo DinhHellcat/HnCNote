@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.LinearLayout
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
@@ -20,6 +22,8 @@ class MainActivity : AppCompatActivity() {
         NoteViewModelFactory((application as NotesApplication).repository)
     }
     private lateinit var adapter: NoteAdapter
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var emptyStateLayout: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,6 +31,10 @@ class MainActivity : AppCompatActivity() {
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
+
+        recyclerView = findViewById(R.id.notesRecyclerView)
+        emptyStateLayout = findViewById(R.id.emptyStateLayout)
+
 
         setupRecyclerView()
         setupObservers()
@@ -55,9 +63,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        // Observer giờ chỉ có một nhiệm vụ duy nhất: nhận danh sách mới và gửi cho adapter.
         noteViewModel.allNotes.observe(this) { notes ->
             notes?.let {
+                // SỬA LẠI LOGIC Ở ĐÂY
+                if (it.isEmpty()) {
+                    // Nếu danh sách rỗng, ẩn RecyclerView và hiện Trạng thái Trống
+                    recyclerView.visibility = View.GONE
+                    emptyStateLayout.visibility = View.VISIBLE
+                } else {
+                    // Nếu có dữ liệu, hiện RecyclerView và ẩn Trạng thái Trống
+                    recyclerView.visibility = View.VISIBLE
+                    emptyStateLayout.visibility = View.GONE
+                }
                 adapter.submitList(it)
             }
         }
