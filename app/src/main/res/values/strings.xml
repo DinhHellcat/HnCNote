@@ -5,4 +5,5 @@
     <string name="content_hint">Nội dung</string>
     <string name="add_new_note_description">Thêm ghi chú mới</string>
     <string name="empty_state">Chưa có ghi chú nào.\nHãy nhấn + để bắt đầu!</string>
+    <string name="insert_checklist">Chèn checklist</string>
 </resources>
