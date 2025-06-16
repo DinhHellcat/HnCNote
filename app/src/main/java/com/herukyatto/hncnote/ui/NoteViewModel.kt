@@ -1,6 +1,10 @@
-package com.herukyatto.hncnote
+package com.herukyatto.hncnote.ui
 
 import androidx.lifecycle.*
+import com.herukyatto.hncnote.data.Note
+import com.herukyatto.hncnote.data.NoteRepository
+import com.herukyatto.hncnote.data.SortOrder
+import com.herukyatto.hncnote.utils.StringUtils
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,9 +21,8 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
 
     private val searchQuery = MutableStateFlow("")
     val searchQueryState: StateFlow<String> = searchQuery.asStateFlow()
-    private val sortOrder = MutableStateFlow(SortOrder.BY_DATE_DESC)
 
-    // Phơi bày trạng thái sortOrder ra bên ngoài một cách an toàn (chỉ đọc)
+    private val sortOrder = MutableStateFlow(SortOrder.BY_DATE_DESC)
     val sortOrderState: StateFlow<SortOrder> = sortOrder.asStateFlow()
 
     private val notesFlow = sortOrder.flatMapLatest { order ->
@@ -35,19 +38,17 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
             if (query.isBlank()) {
                 notes
             } else {
-                val unaccentedQuery = StringUtils.unaccent(query) // Bỏ dấu từ khóa
+                val unaccentedQuery = StringUtils.unaccent(query)
                 notes.filter { note ->
                     val fakeTitle = if (note.title.isNotBlank()) note.title else formatTimestamp(note.lastModified)
-
-                    // Bỏ dấu nội dung và tiêu đề trước khi so sánh
                     val unaccentedFakeTitle = StringUtils.unaccent(fakeTitle)
                     val unaccentedContent = StringUtils.unaccent(note.content)
-
                     unaccentedFakeTitle.contains(unaccentedQuery, ignoreCase = true) ||
                             unaccentedContent.contains(unaccentedQuery, ignoreCase = true)
                 }
             }
         }.asLiveData()
+
 
     fun setSearchQuery(query: String) {
         searchQuery.value = query
@@ -55,11 +56,6 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
 
     fun setSortOrder(order: SortOrder) {
         sortOrder.value = order
-    }
-
-    private fun formatTimestamp(timestamp: Long): String {
-        val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-        return sdf.format(Date(timestamp))
     }
 
     fun insert(note: Note) = viewModelScope.launch {
@@ -73,14 +69,14 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
     fun delete(note: Note) = viewModelScope.launch {
         repository.delete(note)
     }
-}
 
-class NoteViewModelFactory(private val repository: NoteRepository) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(NoteViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return NoteViewModel(repository) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+    fun toggleFavorite(note: Note) = viewModelScope.launch {
+        val updatedNote = note.copy(isFavorite = !note.isFavorite)
+        repository.update(updatedNote)
+    }
+
+    private fun formatTimestamp(timestamp: Long): String {
+        val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        return sdf.format(Date(timestamp))
     }
 }

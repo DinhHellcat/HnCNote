@@ -1,4 +1,4 @@
-package com.herukyatto.hncnote
+package com.herukyatto.hncnote.ui
 
 import android.os.Bundle
 import android.text.Editable
@@ -16,6 +16,8 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
+import com.herukyatto.hncnote.R
+import com.herukyatto.hncnote.data.Note
 import java.util.regex.Pattern
 
 class NoteEditorActivity : AppCompatActivity() {
@@ -28,7 +30,7 @@ class NoteEditorActivity : AppCompatActivity() {
         NoteViewModelFactory((application as NotesApplication).repository)
     }
 
-    // Biến cờ để kiểm soát việc render, tránh vòng lặp vô tận
+    // Dùng biến cờ để kiểm soát việc render, an toàn hơn nhiều
     private var isApplyingSpans = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,8 +40,9 @@ class NoteEditorActivity : AppCompatActivity() {
         setupViews()
         setupToolbar()
         setupBackButton()
-        // Thiết lập TextWatcher trước khi tải dữ liệu
+        // Gắn TextWatcher ngay từ đầu
         setupTextWatcher()
+        // Tải dữ liệu sau cùng
         loadNoteData()
     }
 
@@ -54,6 +57,7 @@ class NoteEditorActivity : AppCompatActivity() {
         currentNote = intent.getSerializableExtra("EXTRA_NOTE") as? Note
         currentNote?.let { note ->
             titleEditText.setText(note.title)
+            // Chỉ cần setText, TextWatcher sẽ tự động gọi renderChecklists
             contentEditText.setText(note.content)
         }
     }
@@ -74,7 +78,6 @@ class NoteEditorActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                // TextWatcher sẽ gọi hàm render chính
                 renderChecklists(s)
             }
         })
@@ -105,11 +108,10 @@ class NoteEditorActivity : AppCompatActivity() {
         while (matcher.find()) {
             val start = matcher.start()
             val end = matcher.end()
-
             editable.setSpan(ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-
             val clickableSpan = object : ClickableSpan() {
                 override fun onClick(widget: View) {
+                    // Chỉ thay đổi text, TextWatcher sẽ lo phần còn lại
                     val currentText = editable.subSequence(start, end).toString()
                     val newText = if (currentText == "[ ]") "[x]" else "[ ]"
                     editable.replace(start, end, newText)
@@ -131,7 +133,7 @@ class NoteEditorActivity : AppCompatActivity() {
         }
         val currentTime = System.currentTimeMillis()
         if (currentNote != null) {
-            val updatedNote = currentNote!!.copy(title = title, content = content, lastModified = currentTime)
+            val updatedNote = currentNote!!.copy(title = title, content = content, lastModified = currentTime, isFavorite = currentNote!!.isFavorite)
             noteViewModel.update(updatedNote)
         } else {
             val newNote = Note(title = title, content = content, lastModified = currentTime)
@@ -148,16 +150,13 @@ class NoteEditorActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_insert_checklist -> {
-                // KIỂM TRA XEM FOCUS CÓ ĐANG Ở Ô NỘI DUNG KHÔNG
                 if (contentEditText.hasFocus()) {
-                    // Nếu đúng, thực hiện chèn checklist như cũ
                     val start = contentEditText.selectionStart
                     val prefix = if (start == 0 || contentEditText.text.getOrNull(start - 1) == '\n') "" else "\n"
                     contentEditText.editableText.insert(start, "$prefix[ ] ")
                 } else {
-                    // Nếu focus đang ở tiêu đề hoặc nơi khác, không làm gì cả.
-                    // Hoặc bạn có thể thêm một Toast để thông báo cho người dùng (tùy chọn):
-                    // Toast.makeText(this, "Hãy đặt con trỏ vào phần nội dung", Toast.LENGTH_SHORT).show()
+//                    contentEditText.requestFocus()
+//                    contentEditText.editableText.append("\n[ ] ")
                 }
                 true
             }

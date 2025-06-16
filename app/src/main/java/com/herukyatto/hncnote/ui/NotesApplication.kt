@@ -1,9 +1,10 @@
-package com.herukyatto.hncnote
+package com.herukyatto.hncnote.ui
 
 import android.app.Application
+import com.herukyatto.hncnote.data.NoteDatabase
+import com.herukyatto.hncnote.data.NoteRepository
 
 class NotesApplication : Application() {
-    // Dùng lazy để database và repository chỉ được tạo khi cần đến.
     val database by lazy { NoteDatabase.getDatabase(this) }
     val repository by lazy { NoteRepository(database.noteDao()) }
 }

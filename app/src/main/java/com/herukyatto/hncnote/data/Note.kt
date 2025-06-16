@@ -1,8 +1,9 @@
-package com.herukyatto.hncnote
+package com.herukyatto.hncnote.data
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.io.Serializable
 
 @Entity(tableName = "notes_table")
 data class Note(
@@ -16,5 +17,9 @@ data class Note(
     val content: String,
 
     @ColumnInfo(name = "last_modified")
-    val lastModified: Long
-) : java.io.Serializable
+    val lastModified: Long,
+
+    @ColumnInfo(name = "is_favorite")
+    val isFavorite: Boolean = false
+
+) : Serializable

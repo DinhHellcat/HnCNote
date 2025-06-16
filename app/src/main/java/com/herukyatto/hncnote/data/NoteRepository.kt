@@ -1,4 +1,4 @@
-package com.herukyatto.hncnote
+package com.herukyatto.hncnote.data
 
 import kotlinx.coroutines.flow.Flow
 

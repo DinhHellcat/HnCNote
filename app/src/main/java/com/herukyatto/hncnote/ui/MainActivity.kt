@@ -1,6 +1,5 @@
-package com.herukyatto.hncnote
+package com.herukyatto.hncnote.ui
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -15,6 +14,9 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.herukyatto.hncnote.R
+import com.herukyatto.hncnote.data.Note
+import com.herukyatto.hncnote.data.SortOrder
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,7 +37,6 @@ class MainActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.notesRecyclerView)
         emptyStateLayout = findViewById(R.id.emptyStateLayout)
 
-
         setupRecyclerView()
         setupObservers()
         setupSearchView()
@@ -43,7 +44,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        val recyclerView = findViewById<RecyclerView>(R.id.notesRecyclerView)
         adapter = NoteAdapter(
             onItemClicked = { selectedNote ->
                 val intent = Intent(this@MainActivity, NoteEditorActivity::class.java)
@@ -51,57 +51,14 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             },
             onItemLongClicked = { selectedNote ->
-                MaterialAlertDialogBuilder(this)
-                    .setTitle("Xác nhận xóa")
-                    .setMessage("Bạn có chắc muốn xóa ghi chú?")
-                    .setPositiveButton("Xóa") { _, _ ->  noteViewModel.delete(selectedNote) }
-                    .setNegativeButton("Hủy", null).show()
+                showDeleteConfirmationDialog(selectedNote)
+            },
+            onFavoriteClicked = { noteToFavorite ->
+                noteViewModel.toggleFavorite(noteToFavorite)
             }
         )
         recyclerView.adapter = adapter
         recyclerView.layoutManager = GridLayoutManager(this, 2)
-    }
-
-    private fun setupObservers() {
-        noteViewModel.allNotes.observe(this) { notes ->
-            notes?.let {
-                // SỬA LẠI LOGIC Ở ĐÂY
-                if (it.isEmpty()) {
-                    // Nếu danh sách rỗng, ẩn RecyclerView và hiện Trạng thái Trống
-                    recyclerView.visibility = View.GONE
-                    emptyStateLayout.visibility = View.VISIBLE
-                } else {
-                    // Nếu có dữ liệu, hiện RecyclerView và ẩn Trạng thái Trống
-                    recyclerView.visibility = View.VISIBLE
-                    emptyStateLayout.visibility = View.GONE
-                }
-                adapter.submitList(it)
-            }
-        }
-    }
-
-    // TOÀN BỘ LOGIC QUAN TRỌNG SẼ NẰM Ở ĐÂY
-    private fun setupSearchView() {
-        val searchView = findViewById<SearchView>(R.id.searchView)
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean = false
-
-            @SuppressLint("NotifyDataSetChanged")
-            override fun onQueryTextChange(newText: String?): Boolean {
-                val query = newText.orEmpty()
-
-                // Cập nhật từ khóa cho cả ViewModel và Adapter ngay lập tức
-                noteViewModel.setSearchQuery(query)
-                adapter.searchQuery = query
-
-                // Lệnh quan trọng: Buộc adapter phải vẽ lại TẤT CẢ các item
-                // đang hiển thị với trạng thái searchQuery mới nhất.
-                // Lệnh này giải quyết triệt để vấn đề "chậm 1 nhịp".
-                adapter.notifyDataSetChanged()
-
-                return true
-            }
-        })
     }
 
     private fun setupFab() {
@@ -111,18 +68,52 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
     }
+
+    private fun setupSearchView() {
+        val searchView = findViewById<SearchView>(R.id.searchView)
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean = false
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                val query = newText.orEmpty()
+                // Cập nhật query cho cả ViewModel và Adapter
+                noteViewModel.setSearchQuery(query)
+                adapter.searchQuery = query
+                // Buộc Adapter vẽ lại toàn bộ, đảm bảo highlight và checkbox luôn đúng
+                adapter.notifyDataSetChanged()
+                return true
+            }
+        })
+    }
+
+    private fun setupObservers() {
+        noteViewModel.allNotes.observe(this) { notes ->
+            notes?.let {
+                if (it.isEmpty() && noteViewModel.searchQueryState.value.isBlank()) {
+                    recyclerView.visibility = View.GONE
+                    emptyStateLayout.visibility = View.VISIBLE
+                } else {
+                    recyclerView.visibility = View.VISIBLE
+                    emptyStateLayout.visibility = View.GONE
+                }
+                adapter.submitList(it)
+            }
+        }
+    }
+
+    // --- Các hàm xử lý Menu ---
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_sort -> {
-                showSortDialog()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+        return if (item.itemId == R.id.action_sort) {
+            showSortDialog()
+            true
+        } else {
+            super.onOptionsItemSelected(item)
         }
     }
 
@@ -146,6 +137,15 @@ class MainActivity : AppCompatActivity() {
                 noteViewModel.setSortOrder(selectedOrder)
                 dialog.dismiss()
             }
+            .show()
+    }
+
+    private fun showDeleteConfirmationDialog(note: Note) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Xác nhận xóa")
+            .setMessage("Bạn có chắc muốn xóa ghi chú?")
+            .setPositiveButton("Xóa") { _, _ ->  noteViewModel.delete(note) }
+            .setNegativeButton("Hủy", null)
             .show()
     }
 }

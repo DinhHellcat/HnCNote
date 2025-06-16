@@ -1,41 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".ui.MainActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/searchView"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize">
+            android:layout_height="wrap_content"
+            app:queryHint="Tìm kiếm ghi chú..."/>
 
-            <androidx.appcompat.widget.SearchView
-                android:id="@+id/searchView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:queryHint="Tìm kiếm ghi chú..."/>
+    </com.google.android.material.appbar.MaterialToolbar>
 
-        </com.google.android.material.appbar.MaterialToolbar>
-
-    </com.google.android.material.appbar.AppBarLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/notesRecyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="4dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <LinearLayout
         android:id="@+id/emptyStateLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_gravity="center"
         android:gravity="center_horizontal"
         android:visibility="gone"
-        tools:visibility="visible">
+        tools:visibility="visible"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <ImageView
             android:layout_width="128dp"
@@ -44,6 +57,7 @@
             app:tint="?android:attr/textColorHint"/>
 
         <TextView
+            android:id="@+id/emptyStateTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -51,24 +65,17 @@
             android:textAlignment="center"
             android:textColor="?android:attr/textColorHint"
             android:textSize="16sp"/>
-
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/notesRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="8dp"
-        android:clipToPadding="false"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addNoteFab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:contentDescription="@string/add_new_note_description"
-        app:srcCompat="@drawable/ic_add_24" />
+        app:srcCompat="@drawable/ic_add_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
