@@ -19,6 +19,15 @@ import androidx.core.content.ContextCompat
 import com.herukyatto.hncnote.R
 import com.herukyatto.hncnote.data.Note
 import java.util.regex.Pattern
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.activity.addCallback
+import androidx.activity.viewModels
 
 class NoteEditorActivity : AppCompatActivity() {
 
@@ -32,6 +41,25 @@ class NoteEditorActivity : AppCompatActivity() {
 
     // Dùng biến cờ để kiểm soát việc render, an toàn hơn nhiều
     private var isApplyingSpans = false
+
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            // Tạm thời chỉ hiển thị một Toast để xác nhận đã chọn được ảnh
+            // Ở bước sau, chúng ta sẽ chèn ảnh vào EditText tại đây
+            Toast.makeText(this, "Đã chọn ảnh: $it", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // Launcher để xin quyền đọc ảnh
+    private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+        if (isGranted) {
+            // Nếu người dùng cấp quyền, mở thư viện ảnh
+            openImagePicker()
+        } else {
+            // Nếu người dùng từ chối, hiển thị thông báo
+            Toast.makeText(this, "Bạn đã từ chối quyền truy cập thư viện", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -149,22 +177,55 @@ class NoteEditorActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            // Case cho nút chèn checklist
             R.id.action_insert_checklist -> {
                 if (contentEditText.hasFocus()) {
                     val start = contentEditText.selectionStart
                     val prefix = if (start == 0 || contentEditText.text.getOrNull(start - 1) == '\n') "" else "\n"
                     contentEditText.editableText.insert(start, "$prefix[ ] ")
                 } else {
-//                    contentEditText.requestFocus()
-//                    contentEditText.editableText.append("\n[ ] ")
+                    contentEditText.requestFocus()
+                    val start = contentEditText.selectionStart
+                    contentEditText.editableText.insert(start, "\n[ ] ")
                 }
                 true
             }
+
+            // THÊM CASE MỚI CHO NÚT CHÈN ẢNH
+            R.id.action_insert_image -> {
+                handleInsertImage()
+                true
+            }
+
+            // Case cho nút quay lại (mũi tên) trên toolbar
             android.R.id.home -> {
                 saveNoteAndFinish()
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun handleInsertImage() {
+        when {
+            // Kiểm tra xem đã được cấp quyền chưa
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_MEDIA_IMAGES
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                // Nếu đã có quyền, mở thư viện ảnh
+                openImagePicker()
+            }
+            else -> {
+                // Nếu chưa có quyền, bắt đầu quá trình xin quyền
+                requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+            }
+        }
+    }
+
+    private fun openImagePicker() {
+        // Mở công cụ chọn file hệ thống, chỉ hiển thị các loại ảnh
+        pickImageLauncher.launch("image/*")
     }
 }

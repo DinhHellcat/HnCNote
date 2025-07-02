@@ -7,4 +7,5 @@
     <string name="empty_state">Chưa có ghi chú nào.\nHãy nhấn + để bắt đầu!</string>
     <string name="insert_checklist">Chèn checklist</string>
     <string name="note_content">Nội dung của ghi chú sẽ được hiển thị ở đây. Nó có thể dài hơn một chút để lấp đầy không gian.</string>
+    <string name="insert_photo">Chèn ảnh</string>
 </resources>
