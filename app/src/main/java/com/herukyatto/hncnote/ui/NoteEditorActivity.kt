@@ -1,33 +1,38 @@
 package com.herukyatto.hncnote.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
-import android.text.Spannable
+import android.text.Spanned
 import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.ImageSpan
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import com.herukyatto.hncnote.R
 import com.herukyatto.hncnote.data.Note
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.util.UUID
 import java.util.regex.Pattern
-import android.Manifest
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.widget.Toast
-import androidx.activity.addCallback
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
-import androidx.activity.addCallback
-import androidx.activity.viewModels
+import android.text.util.Linkify
 
 class NoteEditorActivity : AppCompatActivity() {
 
@@ -39,26 +44,23 @@ class NoteEditorActivity : AppCompatActivity() {
         NoteViewModelFactory((application as NotesApplication).repository)
     }
 
-    // Dùng biến cờ để kiểm soát việc render, an toàn hơn nhiều
-    private var isApplyingSpans = false
+    private var isRenderingSpans = false
+    private var textWatcher: TextWatcher? = null
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let {
-            // Tạm thời chỉ hiển thị một Toast để xác nhận đã chọn được ảnh
-            // Ở bước sau, chúng ta sẽ chèn ảnh vào EditText tại đây
-            Toast.makeText(this, "Đã chọn ảnh: $it", Toast.LENGTH_LONG).show()
+        uri?.let { imageUri ->
+            val localPath = saveImageToInternalStorage(imageUri)
+            if (localPath != null) {
+                insertImageTagIntoEditText(localPath)
+            } else {
+                Toast.makeText(this, "Không thể lưu hình ảnh", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
-    // Launcher để xin quyền đọc ảnh
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-        if (isGranted) {
-            // Nếu người dùng cấp quyền, mở thư viện ảnh
-            openImagePicker()
-        } else {
-            // Nếu người dùng từ chối, hiển thị thông báo
-            Toast.makeText(this, "Bạn đã từ chối quyền truy cập thư viện", Toast.LENGTH_SHORT).show()
-        }
+        if (isGranted) { openImagePicker() }
+        else { Toast.makeText(this, "Bạn đã từ chối quyền truy cập thư viện", Toast.LENGTH_SHORT).show() }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,9 +70,7 @@ class NoteEditorActivity : AppCompatActivity() {
         setupViews()
         setupToolbar()
         setupBackButton()
-        // Gắn TextWatcher ngay từ đầu
         setupTextWatcher()
-        // Tải dữ liệu sau cùng
         loadNoteData()
     }
 
@@ -85,8 +85,11 @@ class NoteEditorActivity : AppCompatActivity() {
         currentNote = intent.getSerializableExtra("EXTRA_NOTE") as? Note
         currentNote?.let { note ->
             titleEditText.setText(note.title)
-            // Chỉ cần setText, TextWatcher sẽ tự động gọi renderChecklists
             contentEditText.setText(note.content)
+            // Gọi render ngay sau khi gán text để đảm bảo hiển thị đúng
+            contentEditText.post {
+                renderAllSpans(contentEditText.text)
+            }
         }
     }
 
@@ -102,59 +105,136 @@ class NoteEditorActivity : AppCompatActivity() {
     }
 
     private fun setupTextWatcher() {
-        contentEditText.addTextChangedListener(object : TextWatcher {
+        textWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                renderChecklists(s)
+                renderAllSpans(s)
             }
-        })
+        }
+        contentEditText.addTextChangedListener(textWatcher)
     }
 
-    private fun renderChecklists(editable: Editable?) {
-        if (editable == null || isApplyingSpans) return
-        isApplyingSpans = true
+    private fun renderAllSpans(editable: Editable?) {
+        if (editable == null || isRenderingSpans) return
+        isRenderingSpans = true
 
         editable.getSpans(0, editable.length, ImageSpan::class.java).forEach { editable.removeSpan(it) }
         editable.getSpans(0, editable.length, ClickableSpan::class.java).forEach { editable.removeSpan(it) }
 
+        applyChecklistSpans(editable)
+        applyImageSpans(editable)
+
+        Linkify.addLinks(editable, Linkify.WEB_URLS)
+
+        isRenderingSpans = false
+    }
+
+    private fun applyChecklistSpans(editable: Editable) {
         val uncheckedDrawable = ContextCompat.getDrawable(this, R.drawable.ic_checkbox_unchecked)!!.apply {
             setBounds(0, 0, contentEditText.lineHeight, contentEditText.lineHeight)
         }
         val checkedDrawable = ContextCompat.getDrawable(this, R.drawable.ic_checkbox_checked)!!.apply {
             setBounds(0, 0, contentEditText.lineHeight, contentEditText.lineHeight)
         }
-
-        applySpansForPattern(editable, "\\[ \\]", uncheckedDrawable)
-        applySpansForPattern(editable, "\\[x\\]", checkedDrawable)
-
-        isApplyingSpans = false
+        applyClickableSpanForPattern(editable, "\\[ \\]", uncheckedDrawable)
+        applyClickableSpanForPattern(editable, "\\[x\\]", checkedDrawable)
     }
 
-    private fun applySpansForPattern(editable: Editable, patternString: String, drawable: android.graphics.drawable.Drawable) {
+    private fun applyClickableSpanForPattern(editable: Editable, patternString: String, drawable: Drawable) {
         val matcher = Pattern.compile(patternString).matcher(editable)
         while (matcher.find()) {
             val start = matcher.start()
             val end = matcher.end()
-            editable.setSpan(ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            editable.setSpan(ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             val clickableSpan = object : ClickableSpan() {
                 override fun onClick(widget: View) {
-                    // Chỉ thay đổi text, TextWatcher sẽ lo phần còn lại
                     val currentText = editable.subSequence(start, end).toString()
                     val newText = if (currentText == "[ ]") "[x]" else "[ ]"
                     editable.replace(start, end, newText)
                 }
             }
-            editable.setSpan(clickableSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            editable.setSpan(clickableSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
+    }
+
+    private fun applyImageSpans(editable: Editable) {
+        val maxWidth = contentEditText.width - contentEditText.paddingLeft - contentEditText.paddingRight
+        if (maxWidth <= 0) return
+
+        val matcher = Pattern.compile("\\[IMG:(.*?)\\]").matcher(editable)
+        val matches = mutableListOf<Pair<Int, Int>>()
+        while (matcher.find()) { matches.add(Pair(matcher.start(), matcher.end())) }
+
+        matches.asReversed().forEach { (start, end) ->
+            val tag = editable.subSequence(start, end).toString()
+            val path = tag.substring(5, tag.length - 1)
+            try {
+                val bitmap = decodeSampledBitmapFromFile(path, maxWidth)
+                if (bitmap != null) {
+                    val imageDrawable = android.graphics.drawable.BitmapDrawable(resources, bitmap)
+                    imageDrawable.setBounds(0, 0, bitmap.width, bitmap.height)
+                    val imageSpan = ImageSpan(imageDrawable)
+                    editable.setSpan(imageSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+            } catch (e: Exception) {
+                Log.e("NoteEditorActivity", "Error loading image from path: $path", e)
+            }
+        }
+    }
+
+    private fun decodeSampledBitmapFromFile(path: String, reqWidth: Int): Bitmap? {
+        return try {
+            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(path, options)
+            val height = options.outHeight
+            val width = options.outWidth
+            var inSampleSize = 1
+            val reqHeight = (height.toFloat() / width.toFloat() * reqWidth).toInt()
+            if (height > reqHeight || width > reqWidth) {
+                val halfHeight: Int = height / 2
+                val halfWidth: Int = width / 2
+                while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                    inSampleSize *= 2
+                }
+            }
+            options.inSampleSize = inSampleSize
+            options.inJustDecodeBounds = false
+            BitmapFactory.decodeFile(path, options)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun saveImageToInternalStorage(uri: Uri): String? {
+        return try {
+            val inputStream: InputStream? = contentResolver.openInputStream(uri)
+            val fileName = "img_${UUID.randomUUID()}.jpg"
+            val file = File(filesDir, fileName)
+            val outputStream = FileOutputStream(file)
+            inputStream?.copyTo(outputStream)
+            inputStream?.close()
+            outputStream.close()
+            file.absolutePath
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun insertImageTagIntoEditText(localPath: String) {
+        val editable = contentEditText.editableText
+        val start = contentEditText.selectionStart
+        val prefix = if (start == 0 || editable.getOrNull(start - 1) == '\n') "" else "\n"
+        editable.insert(start, "$prefix[IMG:$localPath]\n")
     }
 
     private fun saveNoteAndFinish() {
         val title = titleEditText.text.toString().trim()
         val content = contentEditText.text.toString().trim()
         if (currentNote != null && title.isBlank() && content.isBlank()) {
-            noteViewModel.delete(currentNote!!)
-            finish(); return
+            noteViewModel.delete(currentNote!!); finish(); return
         }
         if (currentNote == null && title.isBlank() && content.isBlank()) {
             finish(); return
@@ -177,7 +257,6 @@ class NoteEditorActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            // Case cho nút chèn checklist
             R.id.action_insert_checklist -> {
                 if (contentEditText.hasFocus()) {
                     val start = contentEditText.selectionStart
@@ -185,47 +264,36 @@ class NoteEditorActivity : AppCompatActivity() {
                     contentEditText.editableText.insert(start, "$prefix[ ] ")
                 } else {
                     contentEditText.requestFocus()
-                    val start = contentEditText.selectionStart
-                    contentEditText.editableText.insert(start, "\n[ ] ")
+                    contentEditText.editableText.append("\n[ ] ")
                 }
                 true
             }
-
-            // THÊM CASE MỚI CHO NÚT CHÈN ẢNH
             R.id.action_insert_image -> {
                 handleInsertImage()
                 true
             }
-
-            // Case cho nút quay lại (mũi tên) trên toolbar
             android.R.id.home -> {
                 saveNoteAndFinish()
                 true
             }
-
             else -> super.onOptionsItemSelected(item)
         }
     }
 
     private fun handleInsertImage() {
         when {
-            // Kiểm tra xem đã được cấp quyền chưa
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_MEDIA_IMAGES
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                // Nếu đã có quyền, mở thư viện ảnh
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED -> {
                 openImagePicker()
             }
             else -> {
-                // Nếu chưa có quyền, bắt đầu quá trình xin quyền
                 requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
             }
         }
     }
 
     private fun openImagePicker() {
-        // Mở công cụ chọn file hệ thống, chỉ hiển thị các loại ảnh
         pickImageLauncher.launch("image/*")
     }
+
+
 }

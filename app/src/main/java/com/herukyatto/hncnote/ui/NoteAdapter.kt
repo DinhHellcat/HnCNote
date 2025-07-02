@@ -1,9 +1,12 @@
 package com.herukyatto.hncnote.ui
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.text.Spannable
 import android.text.SpannableString
+import android.text.Spanned
 import android.text.style.ImageSpan
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,21 +33,21 @@ class NoteAdapter(
     var searchQuery: String = ""
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.note_item, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.note_item, parent, false)
         return NoteViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
         val current = getItem(position)
-        // Đặt lại tất cả các listener để đảm bảo chúng hoạt động
         holder.itemView.setOnClickListener { onItemClicked(current) }
         holder.itemView.setOnLongClickListener {
             onItemLongClicked(current)
             true
         }
-        holder.favoriteIcon.setOnClickListener { onFavoriteClicked(current) }
-
-        // Bind dữ liệu và trạng thái hiển thị
+        holder.favoriteIcon.setOnClickListener {
+            onFavoriteClicked(current)
+        }
         holder.bind(current, searchQuery)
     }
 
@@ -55,10 +58,10 @@ class NoteAdapter(
 
         fun bind(note: Note, query: String) {
             val fakeTitle = if (note.title.isNotBlank()) note.title else formatTimestamp(note.lastModified)
-            val contentWithChecklists = renderChecklistSpans(note.content, itemView.context)
+            val renderedContent = renderContent(note.content, itemView.context)
 
             titleTextView.text = highlightText(fakeTitle, query)
-            contentTextView.text = highlightText(contentWithChecklists, query)
+            contentTextView.text = highlightText(renderedContent, query)
 
             if (note.isFavorite) {
                 favoriteIcon.setImageResource(R.drawable.ic_star_filled_24)
@@ -69,8 +72,14 @@ class NoteAdapter(
             }
         }
 
-        private fun renderChecklistSpans(text: String, context: Context): SpannableString {
-            val spannableString = SpannableString(text)
+        private fun renderContent(text: String, context: Context): SpannableString {
+            var spannableString = SpannableString(text)
+            spannableString = renderChecklists(spannableString, context)
+            spannableString = renderImages(spannableString, context)
+            return spannableString
+        }
+
+        private fun renderChecklists(spannableString: SpannableString, context: Context): SpannableString {
             val lineHeight = if (contentTextView.lineHeight > 0) contentTextView.lineHeight else (contentTextView.textSize * 1.2).toInt()
 
             val uncheckedDrawable = ContextCompat.getDrawable(context, R.drawable.ic_checkbox_unchecked)!!.apply { setBounds(0, 0, lineHeight, lineHeight) }
@@ -78,11 +87,38 @@ class NoteAdapter(
 
             var matcher = Pattern.compile("\\[ \\]").matcher(spannableString)
             while (matcher.find()) {
-                spannableString.setSpan(ImageSpan(uncheckedDrawable, ImageSpan.ALIGN_BOTTOM), matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                spannableString.setSpan(ImageSpan(uncheckedDrawable, ImageSpan.ALIGN_BOTTOM), matcher.start(), matcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
             matcher = Pattern.compile("\\[x\\]").matcher(spannableString)
             while (matcher.find()) {
-                spannableString.setSpan(ImageSpan(checkedDrawable, ImageSpan.ALIGN_BOTTOM), matcher.start(), matcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                spannableString.setSpan(ImageSpan(checkedDrawable, ImageSpan.ALIGN_BOTTOM), matcher.start(), matcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            return spannableString
+        }
+
+        private fun renderImages(spannableString: SpannableString, context: Context): SpannableString {
+            val lineHeight = if (contentTextView.lineHeight > 0) contentTextView.lineHeight else (contentTextView.textSize * 1.2).toInt()
+            val matcher = Pattern.compile("\\[IMG:(.*?)\\]").matcher(spannableString)
+            val matches = mutableListOf<Pair<Int, Int>>()
+            while (matcher.find()) { matches.add(Pair(matcher.start(), matcher.end())) }
+
+            matches.asReversed().forEach { (start, end) ->
+                val tag = spannableString.subSequence(start, end).toString()
+                val path = tag.substring(5, tag.length - 1)
+                try {
+                    val bitmap = BitmapFactory.decodeFile(path)
+                    if (bitmap != null) {
+                        val imageDrawable = android.graphics.drawable.BitmapDrawable(context.resources, bitmap)
+                        val aspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
+                        val height = lineHeight * 3 // Hiển thị ảnh thumbnail cao gấp 3 lần dòng chữ
+                        val width = (height * aspectRatio).toInt()
+                        imageDrawable.setBounds(0, 0, width, height)
+                        val imageSpan = ImageSpan(imageDrawable)
+                        spannableString.setSpan(imageSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    }
+                } catch (e: Exception) {
+                    Log.e("NoteAdapter", "Error loading image from path: $path", e)
+                }
             }
             return spannableString
         }
