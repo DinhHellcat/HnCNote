@@ -25,6 +25,8 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
     private val sortOrder = MutableStateFlow(SortOrder.BY_DATE_DESC)
     val sortOrderState: StateFlow<SortOrder> = sortOrder.asStateFlow()
 
+    val trashedNotes: LiveData<List<Note>> = repository.getTrashedNotes().asLiveData()
+
     private val notesFlow = sortOrder.flatMapLatest { order ->
         when (order) {
             SortOrder.BY_DATE_DESC -> repository.getNotesSortedByDateDesc()
@@ -80,5 +82,16 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
     private fun formatTimestamp(timestamp: Long): String {
         val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         return sdf.format(Date(timestamp))
+    }
+
+    // Hàm để khôi phục ghi chú từ thùng rác
+    fun restoreFromTrash(note: Note) = viewModelScope.launch {
+        val restoredNote = note.copy(isInTrash = false)
+        repository.update(restoredNote)
+    }
+
+    // Hàm để xóa vĩnh viễn một ghi chú
+    fun deletePermanently(note: Note) = viewModelScope.launch {
+        repository.delete(note)
     }
 }

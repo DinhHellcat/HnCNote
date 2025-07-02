@@ -7,6 +7,7 @@ class NoteRepository(private val noteDao: NoteDao) {
     fun getNotesSortedByDateDesc(): Flow<List<Note>> = noteDao.getNotesSortedByDateDesc()
     fun getNotesSortedByDateAsc(): Flow<List<Note>> = noteDao.getNotesSortedByDateAsc()
     fun getNotesSortedByTitle(): Flow<List<Note>> = noteDao.getNotesSortedByTitle()
+    fun getTrashedNotes(): Flow<List<Note>> = noteDao.getTrashedNotes()
 
     suspend fun insert(note: Note) {
         noteDao.insert(note)

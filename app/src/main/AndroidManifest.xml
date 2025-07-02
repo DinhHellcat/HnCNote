@@ -16,6 +16,9 @@
         android:theme="@style/Theme.HnCNote"
         tools:targetApi="31">
         <activity
+            android:name=".ui.TrashActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.NoteEditorActivity"
             android:exported="false" />
         <activity

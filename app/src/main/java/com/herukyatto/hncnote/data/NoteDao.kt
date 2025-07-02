@@ -27,4 +27,7 @@ interface NoteDao {
 
     @Query("SELECT * FROM notes_table WHERE is_in_trash = 0 ORDER BY is_favorite DESC, note_title COLLATE NOCASE ASC")
     fun getNotesSortedByTitle(): Flow<List<Note>>
+
+    @Query("SELECT * FROM notes_table WHERE is_in_trash = 1 ORDER BY last_modified DESC")
+    fun getTrashedNotes(): Flow<List<Note>>
 }

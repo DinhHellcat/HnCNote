@@ -116,11 +116,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if (item.itemId == R.id.action_sort) {
-            showSortDialog()
-            true
-        } else {
-            super.onOptionsItemSelected(item)
+        return when (item.itemId) {
+            R.id.action_sort -> {
+                showSortDialog()
+                true
+            }
+            // THÊM CASE MỚI NÀY
+            R.id.action_trash -> {
+                val intent = Intent(this, TrashActivity::class.java)
+                startActivity(intent)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 

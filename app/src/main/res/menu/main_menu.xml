@@ -6,4 +6,10 @@
         android:title="Sắp xếp"
         android:icon="@drawable/ic_sort_24"
         app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_trash"
+        android:title="Thùng rác"
+        android:icon="@drawable/ic_delete_24"
+        app:showAsAction="ifRoom" />
 </menu>
