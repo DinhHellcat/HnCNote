@@ -66,8 +66,10 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         repository.update(note)
     }
 
-    fun delete(note: Note) = viewModelScope.launch {
-        repository.delete(note)
+
+    fun moveToTrash(note: Note) = viewModelScope.launch {
+        val trashedNote = note.copy(isInTrash = true)
+        repository.update(trashedNote)
     }
 
     fun toggleFavorite(note: Note) = viewModelScope.launch {

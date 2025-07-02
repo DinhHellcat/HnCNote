@@ -20,6 +20,8 @@ data class Note(
     val lastModified: Long,
 
     @ColumnInfo(name = "is_favorite")
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
 
+    @ColumnInfo(name = "is_in_trash", defaultValue = "0")
+    val isInTrash: Boolean = false
 ) : Serializable

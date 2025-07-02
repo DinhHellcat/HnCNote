@@ -234,7 +234,7 @@ class NoteEditorActivity : AppCompatActivity() {
         val title = titleEditText.text.toString().trim()
         val content = contentEditText.text.toString().trim()
         if (currentNote != null && title.isBlank() && content.isBlank()) {
-            noteViewModel.delete(currentNote!!); finish(); return
+            noteViewModel.moveToTrash(currentNote!!); finish(); return
         }
         if (currentNote == null && title.isBlank() && content.isBlank()) {
             finish(); return

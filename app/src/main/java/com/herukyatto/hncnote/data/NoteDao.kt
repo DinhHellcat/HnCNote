@@ -19,12 +19,12 @@ interface NoteDao {
     @Delete
     suspend fun delete(note: Note)
 
-    @Query("SELECT * FROM notes_table ORDER BY is_favorite DESC, last_modified DESC")
+    @Query("SELECT * FROM notes_table WHERE is_in_trash = 0 ORDER BY is_favorite DESC, last_modified DESC")
     fun getNotesSortedByDateDesc(): Flow<List<Note>>
 
-    @Query("SELECT * FROM notes_table ORDER BY is_favorite DESC, last_modified ASC")
+    @Query("SELECT * FROM notes_table WHERE is_in_trash = 0 ORDER BY is_favorite DESC, last_modified ASC")
     fun getNotesSortedByDateAsc(): Flow<List<Note>>
 
-    @Query("SELECT * FROM notes_table ORDER BY is_favorite DESC, note_title COLLATE NOCASE ASC")
+    @Query("SELECT * FROM notes_table WHERE is_in_trash = 0 ORDER BY is_favorite DESC, note_title COLLATE NOCASE ASC")
     fun getNotesSortedByTitle(): Flow<List<Note>>
 }

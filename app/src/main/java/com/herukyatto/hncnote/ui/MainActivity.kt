@@ -51,7 +51,14 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             },
             onItemLongClicked = { selectedNote ->
-                showDeleteConfirmationDialog(selectedNote)
+                MaterialAlertDialogBuilder(this)
+                    .setTitle("Chuyển vào thùng rác") // Sửa tiêu đề
+                    .setMessage("Ghi chú sẽ được chuyển vào thùng rác.") // Sửa thông điệp
+                    .setPositiveButton("Chuyển") { _, _ ->
+                        // SỬA LẠI DÒNG NÀY
+                        noteViewModel.moveToTrash(selectedNote)
+                    }
+                    .setNegativeButton("Hủy", null).show()
             },
             onFavoriteClicked = { noteToFavorite ->
                 noteViewModel.toggleFavorite(noteToFavorite)
@@ -142,9 +149,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun showDeleteConfirmationDialog(note: Note) {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Xác nhận xóa")
-            .setMessage("Bạn có chắc muốn xóa ghi chú?")
-            .setPositiveButton("Xóa") { _, _ ->  noteViewModel.delete(note) }
+            .setTitle("Chuyển vào thùng rác")
+            .setMessage("Ghi chú sẽ được chuyển vào thùng rác.")
+            .setPositiveButton("Chuyển") { _, _ ->
+                noteViewModel.moveToTrash(note)
+            }
             .setNegativeButton("Hủy", null)
             .show()
     }
