@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/editor_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -38,8 +38,8 @@
         android:background="?android:attr/listDivider"/>
 
     <EditText
-        android:autofillHints="text"
         android:id="@+id/editorContentEditText"
+        android:autofillHints="text"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -48,5 +48,19 @@
         android:padding="16dp"
         android:inputType="textMultiLine|textCapSentences"
         android:background="@android:color/transparent"/>
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/color_picker_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"/>
+
+    </HorizontalScrollView>
 
 </LinearLayout>

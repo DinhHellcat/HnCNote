@@ -25,5 +25,8 @@ data class Note(
     val isInTrash: Boolean = false,
 
     @ColumnInfo(name = "folder_id", defaultValue = "1")
-    val folderId: Int = 1
+    val folderId: Int = 1,
+
+    @ColumnInfo(name = "color", defaultValue = "#FEFDF7")
+val color: String = "#FEFDF7"
 ) : java.io.Serializable

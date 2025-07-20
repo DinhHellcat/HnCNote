@@ -2,6 +2,7 @@ package com.herukyatto.hncnote.ui
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.Spanned
@@ -16,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.card.MaterialCardView
 import com.herukyatto.hncnote.R
 import com.herukyatto.hncnote.data.Note
 import com.herukyatto.hncnote.utils.StringUtils
@@ -69,6 +71,12 @@ class NoteAdapter(
             } else {
                 favoriteIcon.setImageResource(R.drawable.ic_star_outline_24)
                 favoriteIcon.clearColorFilter()
+            }
+            try {
+                (itemView as MaterialCardView).setCardBackgroundColor(Color.parseColor(note.color))
+            } catch (e: IllegalArgumentException) {
+                // Phòng trường hợp mã màu trong database bị lỗi, dùng màu mặc định
+                (itemView as MaterialCardView).setCardBackgroundColor(Color.parseColor("#FEFDF7"))
             }
         }
 
