@@ -14,10 +14,12 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.card.MaterialCardView
 import com.herukyatto.hncnote.R
 import com.herukyatto.hncnote.data.Note
 import com.herukyatto.hncnote.utils.StringUtils
@@ -29,7 +31,8 @@ import java.util.regex.Pattern
 class NoteAdapter(
     private val onItemClicked: (Note) -> Unit,
     private val onItemLongClicked: (Note) -> Unit,
-    private val onFavoriteClicked: (Note) -> Unit
+    private val onFavoriteClicked: (Note) -> Unit,
+    private val onPinClicked: (Note) -> Unit // Thêm callback mới
 ) : ListAdapter<Note, NoteAdapter.NoteViewHolder>(NotesComparator()) {
 
     var searchQuery: String = ""
@@ -50,15 +53,37 @@ class NoteAdapter(
         holder.favoriteIcon.setOnClickListener {
             onFavoriteClicked(current)
         }
-        holder.bind(current, searchQuery)
+        holder.pinIcon.setOnClickListener { onPinClicked(getItem(position)) } // Thêm listener
+        holder.bind(getItem(position), searchQuery)
     }
 
     class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val titleTextView: TextView = itemView.findViewById(R.id.noteTitleTextView)
         private val contentTextView: TextView = itemView.findViewById(R.id.noteContentTextView)
+        val pinIcon: ImageView = itemView.findViewById(R.id.pinIcon) // Thêm tham chiếu
         val favoriteIcon: ImageView = itemView.findViewById(R.id.favoriteIcon)
 
         fun bind(note: Note, query: String) {
+            // --- BƯỚC 1: XÁC ĐỊNH MÀU NỀN VÀ MÀU CHỮ/ICON PHÙ HỢP ---
+            val backgroundColor = note.color.toColorInt()
+
+            // Tính toán độ sáng của màu nền
+            val luminance = ColorUtils.calculateLuminance(backgroundColor)
+
+            // Nếu nền sáng (độ sáng > 0.5), dùng chữ/icon màu đen. Ngược lại, dùng màu trắng.
+            val textColor = if (luminance > 0.5) Color.BLACK else Color.WHITE
+            val iconColor =
+                if (luminance > 0.5) "#8A000000".toColorInt() else "#B3FFFFFF".toColorInt() // Màu icon mờ hơn một chút
+
+            // --- BƯỚC 2: ÁP DỤNG MÀU SẮC ---
+            (itemView as com.google.android.material.card.MaterialCardView).setCardBackgroundColor(
+                backgroundColor
+            )
+            titleTextView.setTextColor(textColor)
+            contentTextView.setTextColor(textColor)
+            pinIcon.setColorFilter(iconColor)
+
+            // --- BƯỚC 3: HIỂN THỊ DỮ LIỆU (LOGIC CŨ) ---
             val fakeTitle =
                 if (note.title.isNotBlank()) note.title else formatTimestamp(note.lastModified)
             val renderedContent = renderContent(note.content, itemView.context)
@@ -76,13 +101,13 @@ class NoteAdapter(
                 )
             } else {
                 favoriteIcon.setImageResource(R.drawable.ic_star_outline_24)
-                favoriteIcon.clearColorFilter()
+                favoriteIcon.setColorFilter(iconColor) // Dùng màu icon đã tính toán
             }
-            try {
-                (itemView as MaterialCardView).setCardBackgroundColor(Color.parseColor(note.color))
-            } catch (e: IllegalArgumentException) {
-                // Phòng trường hợp mã màu trong database bị lỗi, dùng màu mặc định
-                (itemView as MaterialCardView).setCardBackgroundColor(Color.parseColor("#FEFDF7"))
+
+            if (note.isPinned) {
+                pinIcon.setImageResource(R.drawable.ic_pin_filled_24)
+            } else {
+                pinIcon.setImageResource(R.drawable.ic_pin_outline_24)
             }
         }
 
@@ -147,7 +172,7 @@ class NoteAdapter(
                     val bitmap = BitmapFactory.decodeFile(path)
                     if (bitmap != null) {
                         val imageDrawable =
-                            android.graphics.drawable.BitmapDrawable(context.resources, bitmap)
+                            bitmap.toDrawable(context.resources)
                         val aspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
                         val height = lineHeight * 3 // Hiển thị ảnh thumbnail cao gấp 3 lần dòng chữ
                         val width = (height * aspectRatio).toInt()

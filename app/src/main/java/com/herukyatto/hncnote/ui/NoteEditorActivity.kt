@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -37,6 +36,8 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.util.UUID
 import java.util.regex.Pattern
+import androidx.core.graphics.ColorUtils
+import android.graphics.Color
 
 class NoteEditorActivity : AppCompatActivity() {
 
@@ -368,7 +369,21 @@ class NoteEditorActivity : AppCompatActivity() {
     }
 
     private fun updateBackgroundColor() {
-        editorRootLayout.setBackgroundColor(Color.parseColor(selectedColor))
+        val color = Color.parseColor(selectedColor)
+        editorRootLayout.setBackgroundColor(color)
+
+        val luminance = ColorUtils.calculateLuminance(color)
+
+        // Nếu nền sáng (luminance > 0.5), dùng chữ màu đen.
+        // Nếu nền tối, dùng chữ màu trắng.
+        val textColor = if (luminance > 0.5) {
+            Color.BLACK
+        } else {
+            Color.WHITE
+        }
+
+        titleEditText.setTextColor(textColor)
+        contentEditText.setTextColor(textColor)
     }
 
     private fun updateSwatchSelection() {

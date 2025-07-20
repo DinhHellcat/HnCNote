@@ -80,6 +80,9 @@ class MainActivity : AppCompatActivity() {
             },
             onFavoriteClicked = { noteToFavorite ->
                 noteViewModel.toggleFavorite(noteToFavorite)
+            },
+            onPinClicked = { noteToPin -> // Cung cấp hành động cho callback mới
+                noteViewModel.togglePin(noteToPin)
             }
         )
         recyclerView.adapter = noteAdapter

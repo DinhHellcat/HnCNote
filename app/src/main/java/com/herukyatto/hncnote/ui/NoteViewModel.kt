@@ -91,4 +91,9 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         if (folder.id == 1) return@launch
         repository.deleteFolderAndNotes(folder)
     }
+
+    fun togglePin(note: Note) = viewModelScope.launch {
+        val updatedNote = note.copy(isPinned = !note.isPinned)
+        repository.update(updatedNote)
+    }
 }

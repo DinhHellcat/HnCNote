@@ -15,20 +15,15 @@
         android:minHeight="160dp"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/noteTitleTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textColor="?android:attr/textColorPrimary"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/favoriteIcon"
+        <ImageView
+            android:id="@+id/pinIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:padding="2dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="Đây là Tiêu đề của Ghi chú" />
+            tools:src="@drawable/ic_pin_filled_24" />
 
         <ImageView
             android:id="@+id/favoriteIcon"
@@ -39,6 +34,23 @@
             tools:src="@drawable/ic_star_filled_24" />
 
         <TextView
+            android:id="@+id/noteTitleTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textAlignment="center"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/favoriteIcon"
+            app:layout_constraintStart_toEndOf="@+id/pinIcon"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Đây là Tiêu đề của Ghi chú" />
+
+        <TextView
             android:id="@+id/noteContentTextView"
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -47,10 +59,12 @@
             android:textColor="?android:attr/textColorSecondary"
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/noteTitleTextView"
-            tools:text="@string/note_content" />
+
+            app:layout_constraintStart_toStartOf="@+id/noteTitleTextView"
+            app:layout_constraintEnd_toEndOf="@+id/noteTitleTextView"
+
+            tools:text="Nội dung của ghi chú sẽ được hiển thị ở đây. Nó có thể dài hơn một chút để lấp đầy không gian." />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>
