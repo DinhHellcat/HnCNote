@@ -85,4 +85,10 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         return sdf.format(Date(timestamp))
     }
+
+    fun deleteFolder(folder: Folder) = viewModelScope.launch {
+        // Không cho phép xóa thư mục mặc định
+        if (folder.id == 1) return@launch
+        repository.deleteFolderAndNotes(folder)
+    }
 }

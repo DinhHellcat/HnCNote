@@ -22,5 +22,32 @@
             android:id="@+id/foldersRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="176dp" /> </com.google.android.material.navigation.NavigationView>
+            android:layout_marginTop="176dp"
+            android:layout_marginBottom="56dp"/> <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider"/>
+
+        <TextView
+            android:id="@+id/addFolderButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawablePadding="16dp"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:text="Tạo thư mục mới"
+            android:background="?android:attr/selectableItemBackground"
+            android:textAppearance="?attr/textAppearanceBody1"
+            app:drawableStartCompat="@drawable/ic_add_24"
+            app:drawableTint="?android:attr/textColorSecondary"
+            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+    </LinearLayout>
+    </com.google.android.material.navigation.NavigationView>
 </androidx.drawerlayout.widget.DrawerLayout>

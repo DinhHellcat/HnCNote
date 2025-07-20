@@ -1,5 +1,6 @@
 package com.herukyatto.hncnote.data
 
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 class NoteRepository(private val noteDao: NoteDao, private val folderDao: FolderDao) {
@@ -27,5 +28,11 @@ class NoteRepository(private val noteDao: NoteDao, private val folderDao: Folder
 
     suspend fun delete(note: Note) {
         noteDao.delete(note)
+    }
+
+    @Transaction // Đảm bảo cả 2 hành động cùng thành công hoặc thất bại
+    suspend fun deleteFolderAndNotes(folder: Folder) {
+        noteDao.deleteNotesInFolder(folder.id)
+        folderDao.delete(folder)
     }
 }

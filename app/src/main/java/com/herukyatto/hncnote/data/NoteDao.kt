@@ -30,4 +30,7 @@ interface NoteDao {
 
     @Query("SELECT * FROM notes_table WHERE is_in_trash = 1 ORDER BY last_modified DESC")
     fun getTrashedNotes(): Flow<List<Note>>
+
+    @Query("DELETE FROM notes_table WHERE folder_id = :folderId")
+    suspend fun deleteNotesInFolder(folderId: Int)
 }

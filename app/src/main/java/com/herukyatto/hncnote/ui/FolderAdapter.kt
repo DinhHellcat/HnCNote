@@ -3,6 +3,7 @@ package com.herukyatto.hncnote.ui
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -11,7 +12,8 @@ import com.herukyatto.hncnote.R
 import com.herukyatto.hncnote.data.Folder
 
 class FolderAdapter(
-    private val onFolderClicked: (Folder) -> Unit
+    private val onFolderClicked: (Folder) -> Unit,
+    private val onDeleteClicked: (Folder) -> Unit
 ) : ListAdapter<Folder, FolderAdapter.FolderViewHolder>(FolderComparator()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FolderViewHolder {
@@ -22,17 +24,19 @@ class FolderAdapter(
 
     override fun onBindViewHolder(holder: FolderViewHolder, position: Int) {
         val current = getItem(position)
-        holder.bind(current.name)
-        holder.itemView.setOnClickListener {
-            onFolderClicked(current)
-        }
+        holder.bind(current) // Sửa lại để truyền cả Folder
+        holder.itemView.setOnClickListener { onFolderClicked(current) }
+        holder.deleteIcon.setOnClickListener { onDeleteClicked(current) }
     }
 
     class FolderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val folderNameTextView: TextView = itemView.findViewById(R.id.folder_name)
+        val deleteIcon: ImageView = itemView.findViewById(R.id.delete_folder_icon) // Thêm tham chiếu
 
-        fun bind(name: String) {
-            folderNameTextView.text = name
+        fun bind(folder: Folder) {
+            folderNameTextView.text = folder.name
+            // Ẩn nút xóa cho thư mục mặc định
+            deleteIcon.visibility = if (folder.id == 1) View.GONE else View.VISIBLE
         }
     }
 

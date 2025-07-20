@@ -2,10 +2,13 @@ package com.herukyatto.hncnote.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +22,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import com.herukyatto.hncnote.R
+import com.herukyatto.hncnote.data.Folder
 import com.herukyatto.hncnote.data.Note
 import com.herukyatto.hncnote.data.SortOrder
 
@@ -70,7 +74,7 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             },
             onItemLongClicked = { selectedNote ->
-                showDeleteConfirmationDialog(selectedNote)
+                showNoteOptionsDialog(selectedNote)
             },
             onFavoriteClicked = { noteToFavorite ->
                 noteViewModel.toggleFavorite(noteToFavorite)
@@ -80,15 +84,33 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = GridLayoutManager(this, 2)
     }
 
+    // Trong file MainActivity.kt
+
     private fun setupFolderRecyclerView() {
         val navView = findViewById<NavigationView>(R.id.nav_view)
         val foldersRecyclerView = navView.findViewById<RecyclerView>(R.id.foldersRecyclerView)
-        folderAdapter = FolderAdapter { selectedFolder ->
-            noteViewModel.setCurrentFolder(selectedFolder.id)
-            drawerLayout.closeDrawers()
-        }
+        val addFolderButton = navView.findViewById<TextView>(R.id.addFolderButton)
+
+        // Khởi tạo FolderAdapter và truyền các hành động (callback) vào
+        folderAdapter = FolderAdapter(
+            onFolderClicked = { selectedFolder ->
+                noteViewModel.setCurrentFolder(selectedFolder.id)
+                drawerLayout.closeDrawers()
+            },
+            onDeleteClicked = { folderToDelete ->
+                showDeleteFolderConfirmationDialog(folderToDelete)
+            }
+        )
+
+        // Gán adapter và layout manager cho RecyclerView
         foldersRecyclerView.adapter = folderAdapter
         foldersRecyclerView.layoutManager = LinearLayoutManager(this)
+
+        // Xử lý sự kiện click cho nút "Tạo thư mục mới"
+        addFolderButton.setOnClickListener {
+            showCreateFolderDialog()
+            drawerLayout.closeDrawers()
+        }
     }
 
     private fun setupObservers() {
@@ -145,6 +167,23 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun showCreateFolderDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_create_folder, null)
+        val folderNameEditText = dialogView.findViewById<EditText>(R.id.folderNameEditText)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Tạo thư mục mới")
+            .setView(dialogView)
+            .setPositiveButton("Tạo") { _, _ ->
+                val folderName = folderNameEditText.text.toString().trim()
+                if (folderName.isNotBlank()) {
+                    noteViewModel.insertFolder(folderName)
+                }
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         return true
@@ -183,6 +222,43 @@ class MainActivity : AppCompatActivity() {
                 }
                 noteViewModel.setSortOrder(selectedOrder)
                 dialog.dismiss()
+            }
+            .show()
+    }
+    private fun showDeleteFolderConfirmationDialog(folder: Folder) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Xóa thư mục")
+            .setMessage("Bạn có chắc muốn xóa thư mục '${folder.name}'? Tất cả ghi chú bên trong cũng sẽ bị xóa vĩnh viễn.")
+            .setPositiveButton("Xóa") { _, _ ->
+                noteViewModel.deleteFolder(folder)
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+    private fun showNoteOptionsDialog(note: Note) {
+        val options = arrayOf("Di chuyển vào thùng rác", "Di chuyển đến thư mục")
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Tùy chọn")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> noteViewModel.moveToTrash(note)
+                    1 -> showMoveToFolderDialog(note)
+                }
+            }
+            .show()
+    }
+
+    // Thêm hàm mới này
+    private fun showMoveToFolderDialog(note: Note) {
+        val folders = noteViewModel.allFolders.value ?: return
+        val folderNames = folders.map { it.name }.toTypedArray()
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Di chuyển đến")
+            .setItems(folderNames) { _, which ->
+                val selectedFolder = folders[which]
+                // Cập nhật note với folderId mới
+                noteViewModel.update(note.copy(folderId = selectedFolder.id))
             }
             .show()
     }
