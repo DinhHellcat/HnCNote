@@ -7,9 +7,11 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import androidx.activity.viewModels
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -17,9 +19,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.herukyatto.hncnote.R
 import com.herukyatto.hncnote.data.Note
 import com.herukyatto.hncnote.data.SortOrder
-import androidx.drawerlayout.widget.DrawerLayout
-import androidx.appcompat.app.ActionBarDrawerToggle
-import com.google.android.material.navigation.NavigationView
 
 class MainActivity : AppCompatActivity() {
 

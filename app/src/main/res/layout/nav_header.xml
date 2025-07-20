@@ -12,7 +12,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="HnCNote"
+        android:text="@string/hncnote"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textStyle="bold"
         android:textSize="24sp"/>
@@ -20,6 +20,6 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Quản lý ghi chú của bạn"/>
+        android:text="@string/qu_n_l_ghi_ch_c_a_b_n"/>
 
 </LinearLayout>

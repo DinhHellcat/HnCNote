@@ -10,4 +10,6 @@
     <string name="insert_photo">Chèn ảnh</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="hncnote">HnCNote</string>
+    <string name="qu_n_l_ghi_ch_c_a_b_n">Quản lý ghi chú của bạn</string>
 </resources>

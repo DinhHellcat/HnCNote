@@ -85,11 +85,11 @@ class NoteAdapter(
             val uncheckedDrawable = ContextCompat.getDrawable(context, R.drawable.ic_checkbox_unchecked)!!.apply { setBounds(0, 0, lineHeight, lineHeight) }
             val checkedDrawable = ContextCompat.getDrawable(context, R.drawable.ic_checkbox_checked)!!.apply { setBounds(0, 0, lineHeight, lineHeight) }
 
-            var matcher = Pattern.compile("\\[ \\]").matcher(spannableString)
+            var matcher = Pattern.compile("\\[ ]").matcher(spannableString)
             while (matcher.find()) {
                 spannableString.setSpan(ImageSpan(uncheckedDrawable, ImageSpan.ALIGN_BOTTOM), matcher.start(), matcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
-            matcher = Pattern.compile("\\[x\\]").matcher(spannableString)
+            matcher = Pattern.compile("\\[x]").matcher(spannableString)
             while (matcher.find()) {
                 spannableString.setSpan(ImageSpan(checkedDrawable, ImageSpan.ALIGN_BOTTOM), matcher.start(), matcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             }
@@ -98,7 +98,7 @@ class NoteAdapter(
 
         private fun renderImages(spannableString: SpannableString, context: Context): SpannableString {
             val lineHeight = if (contentTextView.lineHeight > 0) contentTextView.lineHeight else (contentTextView.textSize * 1.2).toInt()
-            val matcher = Pattern.compile("\\[IMG:(.*?)\\]").matcher(spannableString)
+            val matcher = Pattern.compile("\\[IMG:(.*?)]").matcher(spannableString)
             val matches = mutableListOf<Pair<Int, Int>>()
             while (matcher.find()) { matches.add(Pair(matcher.start(), matcher.end())) }
 

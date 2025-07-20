@@ -13,8 +13,11 @@
         android:id="@+id/editorToolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        app:title="Chỉnh sửa Ghi chú"
-        app:navigationIcon="@drawable/ic_arrow_back_24"/>
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:navigationIcon="@drawable/ic_arrow_back_24"
+        app:navigationIconTint="?attr/colorOnPrimary"
+        app:title="Chỉnh sửa Ghi chú" />
 
     <EditText
         android:id="@+id/editorTitleEditText"
