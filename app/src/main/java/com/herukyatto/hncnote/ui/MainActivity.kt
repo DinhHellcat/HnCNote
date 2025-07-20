@@ -14,6 +14,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -25,7 +26,6 @@ import com.herukyatto.hncnote.R
 import com.herukyatto.hncnote.data.Folder
 import com.herukyatto.hncnote.data.Note
 import com.herukyatto.hncnote.data.SortOrder
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 class MainActivity : AppCompatActivity() {
 
@@ -156,17 +156,6 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this@MainActivity, NoteEditorActivity::class.java)
             startActivity(intent)
         }
-    }
-
-    private fun showDeleteConfirmationDialog(note: Note) {
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Chuyển vào thùng rác")
-            .setMessage("Ghi chú sẽ được chuyển vào thùng rác.")
-            .setPositiveButton("Chuyển") { _, _ ->
-                noteViewModel.moveToTrash(note)
-            }
-            .setNegativeButton("Hủy", null)
-            .show()
     }
 
     private fun showCreateFolderDialog() {

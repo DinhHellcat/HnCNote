@@ -12,4 +12,10 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="hncnote">HnCNote</string>
     <string name="qu_n_l_ghi_ch_c_a_b_n">Quản lý ghi chú của bạn</string>
+    <string name="s_p_x_p">Sắp xếp</string>
+    <string name="th_ng_r_c">Thùng rác</string>
+    <string name="ch_n_nh">Chèn ảnh</string>
+    <string name="t_o_th_m_c_m_i">Tạo thư mục mới</string>
+    <string name="delete_folder_icon">delete_folder_icon</string>
+    <string name="folder_icon">folder_icon</string>
 </resources>

@@ -1,6 +1,7 @@
 package com.herukyatto.hncnote.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -10,7 +11,6 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
-import android.text.Spannable
 import android.text.Spanned
 import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
@@ -54,24 +54,27 @@ class NoteEditorActivity : AppCompatActivity() {
 
     private var textWatcher: TextWatcher? = null
 
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let { imageUri ->
-            val localPath = saveImageToInternalStorage(imageUri)
-            if (localPath != null) {
-                insertImageTagIntoEditText(localPath)
-            } else {
-                Toast.makeText(this, "Không thể lưu hình ảnh", Toast.LENGTH_SHORT).show()
+    private val pickImageLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let { imageUri ->
+                val localPath = saveImageToInternalStorage(imageUri)
+                if (localPath != null) {
+                    insertImageTagIntoEditText(localPath)
+                } else {
+                    Toast.makeText(this, "Không thể lưu hình ảnh", Toast.LENGTH_SHORT).show()
+                }
             }
         }
-    }
 
-    private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-        if (isGranted) {
-            openImagePicker()
-        } else {
-            Toast.makeText(this, "Bạn đã từ chối quyền truy cập thư viện", Toast.LENGTH_SHORT).show()
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                openImagePicker()
+            } else {
+                Toast.makeText(this, "Bạn đã từ chối quyền truy cập thư viện", Toast.LENGTH_SHORT)
+                    .show()
+            }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -132,8 +135,10 @@ class NoteEditorActivity : AppCompatActivity() {
 
         contentEditText.removeTextChangedListener(textWatcher)
 
-        editable.getSpans(0, editable.length, ImageSpan::class.java).forEach { editable.removeSpan(it) }
-        editable.getSpans(0, editable.length, ClickableSpan::class.java).forEach { editable.removeSpan(it) }
+        editable.getSpans(0, editable.length, ImageSpan::class.java)
+            .forEach { editable.removeSpan(it) }
+        editable.getSpans(0, editable.length, ClickableSpan::class.java)
+            .forEach { editable.removeSpan(it) }
 
         applyChecklistSpans(editable)
         applyImageSpans(editable)
@@ -142,22 +147,33 @@ class NoteEditorActivity : AppCompatActivity() {
     }
 
     private fun applyChecklistSpans(editable: Editable) {
-        val uncheckedDrawable = ContextCompat.getDrawable(this, R.drawable.ic_checkbox_unchecked)!!.apply {
-            setBounds(0, 0, contentEditText.lineHeight, contentEditText.lineHeight)
-        }
-        val checkedDrawable = ContextCompat.getDrawable(this, R.drawable.ic_checkbox_checked)!!.apply {
-            setBounds(0, 0, contentEditText.lineHeight, contentEditText.lineHeight)
-        }
+        val uncheckedDrawable =
+            ContextCompat.getDrawable(this, R.drawable.ic_checkbox_unchecked)!!.apply {
+                setBounds(0, 0, contentEditText.lineHeight, contentEditText.lineHeight)
+            }
+        val checkedDrawable =
+            ContextCompat.getDrawable(this, R.drawable.ic_checkbox_checked)!!.apply {
+                setBounds(0, 0, contentEditText.lineHeight, contentEditText.lineHeight)
+            }
         applyClickableSpanForPattern(editable, "\\[ \\]", uncheckedDrawable)
         applyClickableSpanForPattern(editable, "\\[x\\]", checkedDrawable)
     }
 
-    private fun applyClickableSpanForPattern(editable: Editable, patternString: String, drawable: Drawable) {
+    private fun applyClickableSpanForPattern(
+        editable: Editable,
+        patternString: String,
+        drawable: Drawable
+    ) {
         val matcher = Pattern.compile(patternString).matcher(editable)
         while (matcher.find()) {
             val start = matcher.start()
             val end = matcher.end()
-            editable.setSpan(ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            editable.setSpan(
+                ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM),
+                start,
+                end,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
             val clickableSpan = object : ClickableSpan() {
                 override fun onClick(widget: View) {
                     val currentText = editable.subSequence(start, end).toString()
@@ -170,12 +186,15 @@ class NoteEditorActivity : AppCompatActivity() {
     }
 
     private fun applyImageSpans(editable: Editable) {
-        val maxWidth = ((contentEditText.width - contentEditText.paddingLeft - contentEditText.paddingRight) * 0.75).toInt()
+        val maxWidth =
+            ((contentEditText.width - contentEditText.paddingLeft - contentEditText.paddingRight) * 0.75).toInt()
         if (maxWidth <= 0) return
 
         val matcher = Pattern.compile("\\[IMG:(.*?)\\]").matcher(editable)
         val matches = mutableListOf<Pair<Int, Int>>()
-        while (matcher.find()) { matches.add(Pair(matcher.start(), matcher.end())) }
+        while (matcher.find()) {
+            matches.add(Pair(matcher.start(), matcher.end()))
+        }
 
         matches.asReversed().forEach { (start, end) ->
             val tag = editable.subSequence(start, end).toString()
@@ -283,7 +302,8 @@ class NoteEditorActivity : AppCompatActivity() {
             R.id.action_insert_checklist -> {
                 if (contentEditText.hasFocus()) {
                     val start = contentEditText.selectionStart
-                    val prefix = if (start == 0 || contentEditText.text.getOrNull(start - 1) == '\n') "" else "\n"
+                    val prefix =
+                        if (start == 0 || contentEditText.text.getOrNull(start - 1) == '\n') "" else "\n"
                     contentEditText.editableText.insert(start, "$prefix[ ] ")
                 } else {
                     contentEditText.requestFocus()
@@ -291,23 +311,31 @@ class NoteEditorActivity : AppCompatActivity() {
                 }
                 true
             }
+
             R.id.action_insert_image -> {
                 handleInsertImage()
                 true
             }
+
             android.R.id.home -> {
                 saveNoteAndFinish()
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
 
+    @SuppressLint("InlinedApi")
     private fun handleInsertImage() {
         when {
-            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED -> {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_MEDIA_IMAGES
+            ) == PackageManager.PERMISSION_GRANTED -> {
                 openImagePicker()
             }
+
             else -> {
                 requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
             }
@@ -346,7 +374,11 @@ class NoteEditorActivity : AppCompatActivity() {
     private fun updateSwatchSelection() {
         colorSwatches.forEach { swatch ->
             val colorString = swatch.tag as String
-            val colorResId = resources.getIdentifier("note_color_${getColorName(colorString)}", "color", packageName)
+            val colorResId = resources.getIdentifier(
+                "note_color_${getColorName(colorString)}",
+                "color",
+                packageName
+            )
 
             if (colorString == selectedColor) {
                 swatch.setBackgroundResource(R.drawable.color_swatch_selected)
@@ -354,7 +386,11 @@ class NoteEditorActivity : AppCompatActivity() {
                 swatch.setBackgroundResource(R.drawable.color_swatch)
             }
             val drawable = swatch.background.mutate()
-            drawable.setColorFilter(ContextCompat.getColor(this, colorResId), PorterDuff.Mode.SRC_IN)
+            @Suppress("DEPRECATION")
+            drawable.setColorFilter(
+                ContextCompat.getColor(this, colorResId),
+                PorterDuff.Mode.SRC_IN
+            )
         }
     }
 

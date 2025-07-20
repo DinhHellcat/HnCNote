@@ -10,7 +10,7 @@
 
     <item
         android:id="@+id/action_insert_image"
-        android:title="Chèn ảnh"
+        android:title="@string/ch_n_nh"
         android:icon="@drawable/ic_insert_photo_24"
         app:iconTint="?attr/colorOnPrimary"
         app:showAsAction="ifRoom" />

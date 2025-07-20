@@ -16,7 +16,8 @@
         android:layout_height="24dp"
         android:src="@drawable/ic_folder_24"
         app:tint="?android:attr/textColorSecondary"
-        xmlns:app="http://schemas.android.com/apk/res-auto" />
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:contentDescription="@string/folder_icon"/>
 
     <TextView
         android:id="@+id/folder_name"
@@ -35,5 +36,6 @@
         android:src="@drawable/ic_close_24"
         app:tint="?android:attr/textColorSecondary"
         android:background="?android:attr/selectableItemBackgroundBorderless"
-        xmlns:app="http://schemas.android.com/apk/res-auto" />
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:contentDescription="@string/delete_folder_icon"/>
 </LinearLayout>

@@ -42,7 +42,7 @@
             android:drawablePadding="16dp"
             android:gravity="center_vertical"
             android:padding="12dp"
-            android:text="Tạo thư mục mới"
+            android:text="@string/t_o_th_m_c_m_i"
             android:background="?android:attr/selectableItemBackground"
             android:textAppearance="?attr/textAppearanceBody1"
             app:drawableStartCompat="@drawable/ic_add_24"

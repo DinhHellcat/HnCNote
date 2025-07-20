@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_sort"
-        android:title="Sắp xếp"
+        android:title="@string/s_p_x_p"
         android:icon="@drawable/ic_sort_24"
         app:iconTint="?attr/colorOnPrimary"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_trash"
-        android:title="Thùng rác"
+        android:title="@string/th_ng_r_c"
         android:icon="@drawable/ic_delete_24"
         app:iconTint="?attr/colorOnPrimary"
         app:showAsAction="ifRoom" />

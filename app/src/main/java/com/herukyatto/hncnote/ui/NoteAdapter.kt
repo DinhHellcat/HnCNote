@@ -59,7 +59,8 @@ class NoteAdapter(
         val favoriteIcon: ImageView = itemView.findViewById(R.id.favoriteIcon)
 
         fun bind(note: Note, query: String) {
-            val fakeTitle = if (note.title.isNotBlank()) note.title else formatTimestamp(note.lastModified)
+            val fakeTitle =
+                if (note.title.isNotBlank()) note.title else formatTimestamp(note.lastModified)
             val renderedContent = renderContent(note.content, itemView.context)
 
             titleTextView.text = highlightText(fakeTitle, query)
@@ -67,7 +68,12 @@ class NoteAdapter(
 
             if (note.isFavorite) {
                 favoriteIcon.setImageResource(R.drawable.ic_star_filled_24)
-                favoriteIcon.setColorFilter(ContextCompat.getColor(itemView.context, R.color.favorite_star_color))
+                favoriteIcon.setColorFilter(
+                    ContextCompat.getColor(
+                        itemView.context,
+                        R.color.favorite_star_color
+                    )
+                )
             } else {
                 favoriteIcon.setImageResource(R.drawable.ic_star_outline_24)
                 favoriteIcon.clearColorFilter()
@@ -87,28 +93,52 @@ class NoteAdapter(
             return spannableString
         }
 
-        private fun renderChecklists(spannableString: SpannableString, context: Context): SpannableString {
-            val lineHeight = if (contentTextView.lineHeight > 0) contentTextView.lineHeight else (contentTextView.textSize * 1.2).toInt()
+        private fun renderChecklists(
+            spannableString: SpannableString,
+            context: Context
+        ): SpannableString {
+            val lineHeight =
+                if (contentTextView.lineHeight > 0) contentTextView.lineHeight else (contentTextView.textSize * 1.2).toInt()
 
-            val uncheckedDrawable = ContextCompat.getDrawable(context, R.drawable.ic_checkbox_unchecked)!!.apply { setBounds(0, 0, lineHeight, lineHeight) }
-            val checkedDrawable = ContextCompat.getDrawable(context, R.drawable.ic_checkbox_checked)!!.apply { setBounds(0, 0, lineHeight, lineHeight) }
+            val uncheckedDrawable =
+                ContextCompat.getDrawable(context, R.drawable.ic_checkbox_unchecked)!!
+                    .apply { setBounds(0, 0, lineHeight, lineHeight) }
+            val checkedDrawable =
+                ContextCompat.getDrawable(context, R.drawable.ic_checkbox_checked)!!
+                    .apply { setBounds(0, 0, lineHeight, lineHeight) }
 
             var matcher = Pattern.compile("\\[ ]").matcher(spannableString)
             while (matcher.find()) {
-                spannableString.setSpan(ImageSpan(uncheckedDrawable, ImageSpan.ALIGN_BOTTOM), matcher.start(), matcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                spannableString.setSpan(
+                    ImageSpan(uncheckedDrawable, ImageSpan.ALIGN_BOTTOM),
+                    matcher.start(),
+                    matcher.end(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
             }
             matcher = Pattern.compile("\\[x]").matcher(spannableString)
             while (matcher.find()) {
-                spannableString.setSpan(ImageSpan(checkedDrawable, ImageSpan.ALIGN_BOTTOM), matcher.start(), matcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                spannableString.setSpan(
+                    ImageSpan(checkedDrawable, ImageSpan.ALIGN_BOTTOM),
+                    matcher.start(),
+                    matcher.end(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
             }
             return spannableString
         }
 
-        private fun renderImages(spannableString: SpannableString, context: Context): SpannableString {
-            val lineHeight = if (contentTextView.lineHeight > 0) contentTextView.lineHeight else (contentTextView.textSize * 1.2).toInt()
+        private fun renderImages(
+            spannableString: SpannableString,
+            context: Context
+        ): SpannableString {
+            val lineHeight =
+                if (contentTextView.lineHeight > 0) contentTextView.lineHeight else (contentTextView.textSize * 1.2).toInt()
             val matcher = Pattern.compile("\\[IMG:(.*?)]").matcher(spannableString)
             val matches = mutableListOf<Pair<Int, Int>>()
-            while (matcher.find()) { matches.add(Pair(matcher.start(), matcher.end())) }
+            while (matcher.find()) {
+                matches.add(Pair(matcher.start(), matcher.end()))
+            }
 
             matches.asReversed().forEach { (start, end) ->
                 val tag = spannableString.subSequence(start, end).toString()
@@ -116,13 +146,19 @@ class NoteAdapter(
                 try {
                     val bitmap = BitmapFactory.decodeFile(path)
                     if (bitmap != null) {
-                        val imageDrawable = android.graphics.drawable.BitmapDrawable(context.resources, bitmap)
+                        val imageDrawable =
+                            android.graphics.drawable.BitmapDrawable(context.resources, bitmap)
                         val aspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
                         val height = lineHeight * 3 // Hiển thị ảnh thumbnail cao gấp 3 lần dòng chữ
                         val width = (height * aspectRatio).toInt()
                         imageDrawable.setBounds(0, 0, width, height)
                         val imageSpan = ImageSpan(imageDrawable)
-                        spannableString.setSpan(imageSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        spannableString.setSpan(
+                            imageSpan,
+                            start,
+                            end,
+                            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
                     }
                 } catch (e: Exception) {
                     Log.e("NoteAdapter", "Error loading image from path: $path", e)
@@ -160,7 +196,9 @@ class NoteAdapter(
     }
 
     class NotesComparator : DiffUtil.ItemCallback<Note>() {
-        override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean = oldItem.id == newItem.id
+        override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean =
+            oldItem.id == newItem.id
+
         override fun areContentsTheSame(oldItem: Note, newItem: Note): Boolean = oldItem == newItem
     }
 }
