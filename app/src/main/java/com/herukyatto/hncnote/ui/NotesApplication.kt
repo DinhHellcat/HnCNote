@@ -6,5 +6,5 @@ import com.herukyatto.hncnote.data.NoteRepository
 
 class NotesApplication : Application() {
     val database by lazy { NoteDatabase.getDatabase(this) }
-    val repository by lazy { NoteRepository(database.noteDao()) }
+    val repository by lazy { NoteRepository(database.noteDao(), database.folderDao()) }
 }

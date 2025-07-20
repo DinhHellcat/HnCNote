@@ -2,6 +2,13 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.HnCNote" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
+        <item name="colorPrimary">@color/blue_primary</item>
+        <item name="colorPrimaryVariant">@color/blue_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/blue_accent</item>
+        <item name="colorSecondaryVariant">@color/blue_accent</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 

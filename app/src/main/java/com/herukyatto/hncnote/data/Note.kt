@@ -23,5 +23,8 @@ data class Note(
     val isFavorite: Boolean = false,
 
     @ColumnInfo(name = "is_in_trash", defaultValue = "0")
-    val isInTrash: Boolean = false
-) : Serializable
+    val isInTrash: Boolean = false,
+
+    @ColumnInfo(name = "folder_id", defaultValue = "1")
+    val folderId: Int = 1
+) : java.io.Serializable

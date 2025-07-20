@@ -17,6 +17,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.herukyatto.hncnote.R
 import com.herukyatto.hncnote.data.Note
 import com.herukyatto.hncnote.data.SortOrder
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.appcompat.app.ActionBarDrawerToggle
+import com.google.android.material.navigation.NavigationView
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: NoteAdapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var emptyStateLayout: LinearLayout
+    private lateinit var drawerLayout: DrawerLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,6 +37,15 @@ class MainActivity : AppCompatActivity() {
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
+
+        drawerLayout = findViewById(R.id.drawer_layout)
+        val toggle = ActionBarDrawerToggle(
+            this, drawerLayout, toolbar,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close
+        )
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
 
         recyclerView = findViewById(R.id.notesRecyclerView)
         emptyStateLayout = findViewById(R.id.emptyStateLayout)

@@ -65,7 +65,7 @@ class NoteAdapter(
 
             if (note.isFavorite) {
                 favoriteIcon.setImageResource(R.drawable.ic_star_filled_24)
-                favoriteIcon.setColorFilter(ContextCompat.getColor(itemView.context, R.color.search_highlight_color))
+                favoriteIcon.setColorFilter(ContextCompat.getColor(itemView.context, R.color.favorite_star_color))
             } else {
                 favoriteIcon.setImageResource(R.drawable.ic_star_outline_24)
                 favoriteIcon.clearColorFilter()
