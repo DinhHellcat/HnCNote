@@ -49,6 +49,7 @@ class TrashActivity : AppCompatActivity() {
     private fun showOptionsDialog(note: Note) {
         val options = arrayOf("Khôi phục", "Xóa vĩnh viễn")
         MaterialAlertDialogBuilder(this)
+            .setTitle("Tùy chọn")
             .setItems(options) { dialog, which ->
                 when (which) {
                     0 -> noteViewModel.restoreFromTrash(note)

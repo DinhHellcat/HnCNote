@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.ListAdapter
 import com.herukyatto.hncnote.R
 import com.herukyatto.hncnote.data.Note
 
-// Adapter này rất giống NoteAdapter nhưng có callback khác
 class TrashAdapter(
     private val onItemLongClicked: (Note) -> Unit
 ) : ListAdapter<Note, NoteAdapter.NoteViewHolder>(NoteAdapter.NotesComparator()) {
@@ -24,11 +23,10 @@ class TrashAdapter(
             onItemLongClicked(current)
             true
         }
-        // Bỏ các listener không cần thiết khác
+        // Vô hiệu hóa các listener không cần thiết
         holder.itemView.setOnClickListener(null)
         holder.favoriteIcon.setOnClickListener(null)
 
-        // Dùng lại hàm bind của NoteViewHolder để hiển thị
-        holder.bind(current, "") // query rỗng vì không có tìm kiếm ở đây
+        holder.bind(current, "") // query rỗng vì không có tìm kiếm
     }
 }

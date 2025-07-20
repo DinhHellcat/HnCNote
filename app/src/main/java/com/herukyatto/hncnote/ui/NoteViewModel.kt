@@ -60,8 +60,14 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
     fun update(note: Note) = viewModelScope.launch { repository.update(note) }
     fun moveToTrash(note: Note) = viewModelScope.launch { repository.update(note.copy(isInTrash = true)) }
     fun toggleFavorite(note: Note) = viewModelScope.launch { repository.update(note.copy(isFavorite = !note.isFavorite)) }
-    fun restoreFromTrash(note: Note) = viewModelScope.launch { repository.update(note.copy(isInTrash = false)) }
-    fun deletePermanently(note: Note) = viewModelScope.launch { repository.delete(note) }
+    fun restoreFromTrash(note: Note) = viewModelScope.launch {
+        val restoredNote = note.copy(isInTrash = false)
+        repository.update(restoredNote)
+    }
+
+    fun deletePermanently(note: Note) = viewModelScope.launch {
+        repository.delete(note)
+    }
 
     fun insertFolder(folderName: String) = viewModelScope.launch {
         if (folderName.isNotBlank()) {

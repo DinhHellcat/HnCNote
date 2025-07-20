@@ -13,9 +13,11 @@ import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.navigation.NavigationView
 import com.herukyatto.hncnote.R
 import com.herukyatto.hncnote.data.Note
 import com.herukyatto.hncnote.data.SortOrder
@@ -25,7 +27,8 @@ class MainActivity : AppCompatActivity() {
     private val noteViewModel: NoteViewModel by viewModels {
         NoteViewModelFactory((application as NotesApplication).repository)
     }
-    private lateinit var adapter: NoteAdapter
+    private lateinit var noteAdapter: NoteAdapter
+    private lateinit var folderAdapter: FolderAdapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var emptyStateLayout: LinearLayout
     private lateinit var drawerLayout: DrawerLayout
@@ -37,6 +40,18 @@ class MainActivity : AppCompatActivity() {
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
+        recyclerView = findViewById(R.id.notesRecyclerView)
+        emptyStateLayout = findViewById(R.id.emptyStateLayout)
+
+        setupDrawer(toolbar)
+        setupRecyclerView()
+        setupFolderRecyclerView()
+        setupObservers()
+        setupSearchView()
+        setupFab()
+    }
+
+    private fun setupDrawer(toolbar: Toolbar) {
         drawerLayout = findViewById(R.id.drawer_layout)
         val toggle = ActionBarDrawerToggle(
             this, drawerLayout, toolbar,
@@ -45,64 +60,35 @@ class MainActivity : AppCompatActivity() {
         )
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
-
-        recyclerView = findViewById(R.id.notesRecyclerView)
-        emptyStateLayout = findViewById(R.id.emptyStateLayout)
-
-        setupRecyclerView()
-        setupObservers()
-        setupSearchView()
-        setupFab()
     }
 
     private fun setupRecyclerView() {
-        adapter = NoteAdapter(
+        noteAdapter = NoteAdapter(
             onItemClicked = { selectedNote ->
                 val intent = Intent(this@MainActivity, NoteEditorActivity::class.java)
                 intent.putExtra("EXTRA_NOTE", selectedNote)
                 startActivity(intent)
             },
             onItemLongClicked = { selectedNote ->
-                MaterialAlertDialogBuilder(this)
-                    .setTitle("Chuyển vào thùng rác") // Sửa tiêu đề
-                    .setMessage("Ghi chú sẽ được chuyển vào thùng rác.") // Sửa thông điệp
-                    .setPositiveButton("Chuyển") { _, _ ->
-                        // SỬA LẠI DÒNG NÀY
-                        noteViewModel.moveToTrash(selectedNote)
-                    }
-                    .setNegativeButton("Hủy", null).show()
+                showDeleteConfirmationDialog(selectedNote)
             },
             onFavoriteClicked = { noteToFavorite ->
                 noteViewModel.toggleFavorite(noteToFavorite)
             }
         )
-        recyclerView.adapter = adapter
+        recyclerView.adapter = noteAdapter
         recyclerView.layoutManager = GridLayoutManager(this, 2)
     }
 
-    private fun setupFab() {
-        val fab = findViewById<FloatingActionButton>(R.id.addNoteFab)
-        fab.setOnClickListener {
-            val intent = Intent(this@MainActivity, NoteEditorActivity::class.java)
-            startActivity(intent)
+    private fun setupFolderRecyclerView() {
+        val navView = findViewById<NavigationView>(R.id.nav_view)
+        val foldersRecyclerView = navView.findViewById<RecyclerView>(R.id.foldersRecyclerView)
+        folderAdapter = FolderAdapter { selectedFolder ->
+            noteViewModel.setCurrentFolder(selectedFolder.id)
+            drawerLayout.closeDrawers()
         }
-    }
-
-    private fun setupSearchView() {
-        val searchView = findViewById<SearchView>(R.id.searchView)
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean = false
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                val query = newText.orEmpty()
-                // Cập nhật query cho cả ViewModel và Adapter
-                noteViewModel.setSearchQuery(query)
-                adapter.searchQuery = query
-                // Buộc Adapter vẽ lại toàn bộ, đảm bảo highlight và checkbox luôn đúng
-                adapter.notifyDataSetChanged()
-                return true
-            }
-        })
+        foldersRecyclerView.adapter = folderAdapter
+        foldersRecyclerView.layoutManager = LinearLayoutManager(this)
     }
 
     private fun setupObservers() {
@@ -115,12 +101,49 @@ class MainActivity : AppCompatActivity() {
                     recyclerView.visibility = View.VISIBLE
                     emptyStateLayout.visibility = View.GONE
                 }
-                adapter.submitList(it)
+                noteAdapter.submitList(it)
             }
+        }
+
+        noteViewModel.allFolders.observe(this) { folders ->
+            folderAdapter.submitList(folders)
+            val currentFolder = folders.find { it.id == noteViewModel.currentFolderIdState.value }
+            supportActionBar?.title = currentFolder?.name ?: "Ghi chú"
         }
     }
 
-    // --- Các hàm xử lý Menu ---
+    private fun setupSearchView() {
+        val searchView = findViewById<SearchView>(R.id.searchView)
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean = false
+            override fun onQueryTextChange(newText: String?): Boolean {
+                val query = newText.orEmpty()
+                noteAdapter.searchQuery = query
+                noteViewModel.setSearchQuery(query)
+                noteAdapter.notifyDataSetChanged()
+                return true
+            }
+        })
+    }
+
+    private fun setupFab() {
+        val fab = findViewById<FloatingActionButton>(R.id.addNoteFab)
+        fab.setOnClickListener {
+            val intent = Intent(this@MainActivity, NoteEditorActivity::class.java)
+            startActivity(intent)
+        }
+    }
+
+    private fun showDeleteConfirmationDialog(note: Note) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Chuyển vào thùng rác")
+            .setMessage("Ghi chú sẽ được chuyển vào thùng rác.")
+            .setPositiveButton("Chuyển") { _, _ ->
+                noteViewModel.moveToTrash(note)
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
@@ -133,7 +156,6 @@ class MainActivity : AppCompatActivity() {
                 showSortDialog()
                 true
             }
-            // THÊM CASE MỚI NÀY
             R.id.action_trash -> {
                 val intent = Intent(this, TrashActivity::class.java)
                 startActivity(intent)
@@ -151,7 +173,6 @@ class MainActivity : AppCompatActivity() {
             SortOrder.BY_DATE_ASC -> 1
             SortOrder.BY_TITLE_ASC -> 2
         }
-
         MaterialAlertDialogBuilder(this)
             .setTitle("Sắp xếp theo")
             .setSingleChoiceItems(sortOptions, checkedItem) { dialog, which ->
@@ -163,17 +184,6 @@ class MainActivity : AppCompatActivity() {
                 noteViewModel.setSortOrder(selectedOrder)
                 dialog.dismiss()
             }
-            .show()
-    }
-
-    private fun showDeleteConfirmationDialog(note: Note) {
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Chuyển vào thùng rác")
-            .setMessage("Ghi chú sẽ được chuyển vào thùng rác.")
-            .setPositiveButton("Chuyển") { _, _ ->
-                noteViewModel.moveToTrash(note)
-            }
-            .setNegativeButton("Hủy", null)
             .show()
     }
 }

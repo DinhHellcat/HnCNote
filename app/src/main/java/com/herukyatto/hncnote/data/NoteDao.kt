@@ -28,7 +28,6 @@ interface NoteDao {
     @Query("SELECT * FROM notes_table WHERE is_in_trash = 0 AND folder_id = :folderId ORDER BY is_favorite DESC, note_title COLLATE NOCASE ASC")
     fun getNotesSortedByTitle(folderId: Int): Flow<List<Note>>
 
-    // Hàm lấy ghi chú trong thùng rác không đổi
     @Query("SELECT * FROM notes_table WHERE is_in_trash = 1 ORDER BY last_modified DESC")
     fun getTrashedNotes(): Flow<List<Note>>
 }
