@@ -58,4 +58,6 @@ dependencies {
 
     implementation(libs.glide)
     ksp(libs.glide.compiler)
+
+    implementation(libs.androidx.splashscreen)
 }

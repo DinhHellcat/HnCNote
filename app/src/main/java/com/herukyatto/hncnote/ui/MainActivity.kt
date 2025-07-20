@@ -25,6 +25,7 @@ import com.herukyatto.hncnote.R
 import com.herukyatto.hncnote.data.Folder
 import com.herukyatto.hncnote.data.Note
 import com.herukyatto.hncnote.data.SortOrder
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 class MainActivity : AppCompatActivity() {
 
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
