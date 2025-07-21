@@ -2,8 +2,29 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="dark_background">#FFFFFF</color>
     <color name="divider">#1F000000</color>
-    <color name="blue_primary">#4A6572</color> <color name="blue_dark">#233842</color>   <color name="blue_accent">#5C96B8</color>  <color name="note_background_blue">#F0F4F7</color> <color name="search_highlight_color">#80D6EDFF</color> <color name="favorite_star_color">#FFC107</color>
-    <color name="note_color_default">#FEFDF7</color> <color name="note_color_red">#FDE7E7</color>     <color name="note_color_blue">#E7EEF5</color>    <color name="note_color_green">#E7F5E8</color>   <color name="note_color_yellow">#FFF5D1</color>  <color name="note_color_gray">#EAEAEA</color>    ```
+
+    <color name="light_primary">#4A6572</color>
+    <color name="light_primary_dark">#233842</color>
+    <color name="light_accent">#5C96B8</color>
+    <color name="light_background">#F5F5F5</color>
+    <color name="light_surface">#FFFFFF</color>
+
+    <color name="dark_primary">#344955</color>
+    <color name="dark_primary_dark">#233842</color>
+    <color name="dark_accent">#81D4FA</color>
+    <color name="dark_background">#121212</color>
+    <color name="dark_surface">#212121</color>
+
+    <color name="search_highlight_color">#80D6EDFF</color>
+    <color name="favorite_star_color">#FFC107</color>
+
+    <color name="note_color_default">#FFFFFF</color>
+    <color name="note_color_red">#FDE7E7</color>
+    <color name="note_color_blue">#E7EEF5</color>
+    <color name="note_color_green">#E7F5E8</color>
+    <color name="note_color_yellow">#FFF5D1</color>
+    <color name="note_color_gray">#EAEAEA</color>
+
+    <color name="note_background_blue">#F0F4F7</color>
 </resources>

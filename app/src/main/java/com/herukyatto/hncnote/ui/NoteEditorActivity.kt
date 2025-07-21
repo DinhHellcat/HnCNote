@@ -5,8 +5,10 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -29,24 +31,24 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import com.herukyatto.hncnote.R
 import com.herukyatto.hncnote.data.Note
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.util.UUID
+import java.util.*
 import java.util.regex.Pattern
-import androidx.core.graphics.ColorUtils
-import android.graphics.Color
 
 class NoteEditorActivity : AppCompatActivity() {
 
     private var currentNote: Note? = null
+    private var targetFolderId: Int = 1 // Biến để lưu folderId
     private lateinit var titleEditText: EditText
     private lateinit var contentEditText: EditText
     private lateinit var editorRootLayout: View
     private lateinit var colorPickerContainer: LinearLayout
-    private var selectedColor: String = "#FEFDF7"
+    private var selectedColor: String = "#FFFFFF"
     private val colorSwatches = mutableListOf<ImageView>()
 
     private val noteViewModel: NoteViewModel by viewModels {
@@ -81,6 +83,9 @@ class NoteEditorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note_editor)
 
+        // Nhận folderId từ Intent
+        targetFolderId = intent.getIntExtra("EXTRA_FOLDER_ID", 1)
+
         setupViews()
         setupToolbar()
         setupBackButton()
@@ -88,7 +93,6 @@ class NoteEditorActivity : AppCompatActivity() {
         loadNoteData()
         setupColorPicker()
     }
-
     private fun setupViews() {
         titleEditText = findViewById(R.id.editorTitleEditText)
         contentEditText = findViewById(R.id.editorContentEditText)
@@ -100,11 +104,11 @@ class NoteEditorActivity : AppCompatActivity() {
     private fun loadNoteData() {
         @Suppress("DEPRECATION")
         currentNote = intent.getSerializableExtra("EXTRA_NOTE") as? Note
+        selectedColor = currentNote?.color ?: "#FFFFFF"
+        updateBackgroundColor()
         currentNote?.let { note ->
             titleEditText.setText(note.title)
             contentEditText.setText(note.content)
-            selectedColor = note.color
-            updateBackgroundColor()
             contentEditText.post { renderAllSpans(contentEditText.text) }
         }
     }
@@ -265,8 +269,7 @@ class NoteEditorActivity : AppCompatActivity() {
         val title = titleEditText.text.toString().trim()
         val content = contentEditText.text.toString().trim()
         if (currentNote != null && title.isBlank() && content.isBlank()) {
-            noteViewModel.moveToTrash(currentNote!!)
-            finish(); return
+            noteViewModel.moveToTrash(currentNote!!); finish(); return
         }
         if (currentNote == null && title.isBlank() && content.isBlank()) {
             finish(); return
@@ -277,16 +280,17 @@ class NoteEditorActivity : AppCompatActivity() {
                 title = title,
                 content = content,
                 lastModified = currentTime,
-                isFavorite = currentNote!!.isFavorite,
                 color = selectedColor
             )
             noteViewModel.update(updatedNote)
         } else {
+            // SỬA LẠI Ở ĐÂY
             val newNote = Note(
                 title = title,
                 content = content,
                 lastModified = currentTime,
-                color = selectedColor
+                color = selectedColor,
+                folderId = targetFolderId // Dùng folderId đúng
             )
             noteViewModel.insert(newNote)
         }
@@ -371,41 +375,30 @@ class NoteEditorActivity : AppCompatActivity() {
     private fun updateBackgroundColor() {
         val color = Color.parseColor(selectedColor)
         editorRootLayout.setBackgroundColor(color)
-
         val luminance = ColorUtils.calculateLuminance(color)
-
-        // Nếu nền sáng (luminance > 0.5), dùng chữ màu đen.
-        // Nếu nền tối, dùng chữ màu trắng.
-        val textColor = if (luminance > 0.5) {
-            Color.BLACK
-        } else {
-            Color.WHITE
-        }
-
+        val textColor = if (luminance > 0.5) Color.BLACK else Color.WHITE
         titleEditText.setTextColor(textColor)
         contentEditText.setTextColor(textColor)
+        titleEditText.setHintTextColor(if (luminance > 0.5) Color.GRAY else Color.LTGRAY)
+        contentEditText.setHintTextColor(if (luminance > 0.5) Color.GRAY else Color.LTGRAY)
     }
 
     private fun updateSwatchSelection() {
         colorSwatches.forEach { swatch ->
             val colorString = swatch.tag as String
-            val colorResId = resources.getIdentifier(
-                "note_color_${getColorName(colorString)}",
-                "color",
-                packageName
-            )
+            val colorResId = resources.getIdentifier("note_color_${getColorName(colorString)}", "color", packageName)
+            val color = ContextCompat.getColor(this, colorResId)
 
             if (colorString == selectedColor) {
                 swatch.setBackgroundResource(R.drawable.color_swatch_selected)
+                val layerDrawable = swatch.background as LayerDrawable
+                val innerCircle = layerDrawable.getDrawable(1)
+                innerCircle.setColorFilter(color, PorterDuff.Mode.SRC_IN)
             } else {
                 swatch.setBackgroundResource(R.drawable.color_swatch)
+                val drawable = swatch.background.mutate()
+                drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN)
             }
-            val drawable = swatch.background.mutate()
-            @Suppress("DEPRECATION")
-            drawable.setColorFilter(
-                ContextCompat.getColor(this, colorResId),
-                PorterDuff.Mode.SRC_IN
-            )
         }
     }
 

@@ -18,4 +18,5 @@
     <string name="t_o_th_m_c_m_i">Tạo thư mục mới</string>
     <string name="delete_folder_icon">delete_folder_icon</string>
     <string name="folder_icon">folder_icon</string>
+    <string name="t_n_th_m_c">Tên thư mục</string>
 </resources>

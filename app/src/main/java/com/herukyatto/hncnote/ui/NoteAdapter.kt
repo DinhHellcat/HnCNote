@@ -63,7 +63,7 @@ class NoteAdapter(
         val pinIcon: ImageView = itemView.findViewById(R.id.pinIcon) // Thêm tham chiếu
         val favoriteIcon: ImageView = itemView.findViewById(R.id.favoriteIcon)
 
-        fun bind(note: Note, query: String) {
+        fun bind(note: Note, query: String, isInTrash: Boolean = false) {
             // --- BƯỚC 1: XÁC ĐỊNH MÀU NỀN VÀ MÀU CHỮ/ICON PHÙ HỢP ---
             val backgroundColor = note.color.toColorInt()
 
@@ -72,9 +72,7 @@ class NoteAdapter(
 
             // Nếu nền sáng (độ sáng > 0.5), dùng chữ/icon màu đen. Ngược lại, dùng màu trắng.
             val textColor = if (luminance > 0.5) Color.BLACK else Color.WHITE
-            val iconColor =
-                if (luminance > 0.5) "#8A000000".toColorInt() else "#B3FFFFFF".toColorInt() // Màu icon mờ hơn một chút
-
+            val iconColor = titleTextView.currentTextColor
             // --- BƯỚC 2: ÁP DỤNG MÀU SẮC ---
             (itemView as com.google.android.material.card.MaterialCardView).setCardBackgroundColor(
                 backgroundColor
@@ -90,24 +88,30 @@ class NoteAdapter(
 
             titleTextView.text = highlightText(fakeTitle, query)
             contentTextView.text = highlightText(renderedContent, query)
-
-            if (note.isFavorite) {
-                favoriteIcon.setImageResource(R.drawable.ic_star_filled_24)
-                favoriteIcon.setColorFilter(
-                    ContextCompat.getColor(
-                        itemView.context,
-                        R.color.favorite_star_color
-                    )
-                )
-            } else {
-                favoriteIcon.setImageResource(R.drawable.ic_star_outline_24)
-                favoriteIcon.setColorFilter(iconColor) // Dùng màu icon đã tính toán
+            if (isInTrash) {
+                // Nếu ở trong thùng rác, ẩn cả 2 icon đi
+                favoriteIcon.visibility = View.GONE
+                pinIcon.visibility = View.GONE
             }
+            else{
+                if (note.isFavorite) {
+                    favoriteIcon.setImageResource(R.drawable.ic_star_filled_24)
+                    favoriteIcon.setColorFilter(
+                        ContextCompat.getColor(
+                            itemView.context,
+                            R.color.favorite_star_color
+                        )
+                    )
+                } else {
+                    favoriteIcon.setImageResource(R.drawable.ic_star_outline_24)
+                    favoriteIcon.setColorFilter(iconColor) // Dùng màu icon đã tính toán
+                }
 
-            if (note.isPinned) {
-                pinIcon.setImageResource(R.drawable.ic_pin_filled_24)
-            } else {
-                pinIcon.setImageResource(R.drawable.ic_pin_outline_24)
+                if (note.isPinned) {
+                    pinIcon.setImageResource(R.drawable.ic_pin_filled_24)
+                } else {
+                    pinIcon.setImageResource(R.drawable.ic_pin_outline_24)
+                }
             }
         }
 

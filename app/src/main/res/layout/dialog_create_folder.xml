@@ -10,6 +10,6 @@
         android:id="@+id/folderNameEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Tên thư mục"/>
+        android:hint="@string/t_n_th_m_c"/>
 
 </LinearLayout>

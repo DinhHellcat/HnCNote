@@ -19,12 +19,11 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
     private val _searchQuery = MutableStateFlow("")
     val searchQueryState: StateFlow<String> = _searchQuery.asStateFlow()
 
-    private val _currentFolderId = MutableStateFlow(1) // Mặc định là thư mục 1
+    private val _currentFolderId = MutableStateFlow(1)
     val currentFolderIdState: StateFlow<Int> = _currentFolderId.asStateFlow()
 
     val allFolders: LiveData<List<Folder>> = repository.allFolders.asLiveData()
 
-    // Sửa lại khối logic này
     val allNotes: LiveData<List<Note>> = combine(
         _sortOrder, _currentFolderId
     ) { sortOrder, folderId ->
@@ -56,17 +55,20 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
     fun setSearchQuery(query: String) { _searchQuery.value = query }
     fun setCurrentFolder(folderId: Int) { _currentFolderId.value = folderId }
 
-    fun insert(note: Note) = viewModelScope.launch { repository.insert(note.copy(folderId = _currentFolderId.value)) }
+    // SỬA LẠI HÀM NÀY
+    fun insert(note: Note) = viewModelScope.launch {
+        repository.insert(note)
+    }
+
     fun update(note: Note) = viewModelScope.launch { repository.update(note) }
     fun moveToTrash(note: Note) = viewModelScope.launch { repository.update(note.copy(isInTrash = true)) }
     fun toggleFavorite(note: Note) = viewModelScope.launch { repository.update(note.copy(isFavorite = !note.isFavorite)) }
-    fun restoreFromTrash(note: Note) = viewModelScope.launch {
-        val restoredNote = note.copy(isInTrash = false)
-        repository.update(restoredNote)
-    }
-
-    fun deletePermanently(note: Note) = viewModelScope.launch {
-        repository.delete(note)
+    fun togglePin(note: Note) = viewModelScope.launch { repository.update(note.copy(isPinned = !note.isPinned)) }
+    fun restoreFromTrash(note: Note) = viewModelScope.launch { repository.update(note.copy(isInTrash = false)) }
+    fun deletePermanently(note: Note) = viewModelScope.launch { repository.delete(note) }
+    fun deleteFolder(folder: Folder) = viewModelScope.launch {
+        if (folder.id == 1) return@launch
+        repository.deleteFolderAndNotes(folder)
     }
 
     fun insertFolder(folderName: String) = viewModelScope.launch {
@@ -84,16 +86,5 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
     private fun formatTimestamp(timestamp: Long): String {
         val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         return sdf.format(Date(timestamp))
-    }
-
-    fun deleteFolder(folder: Folder) = viewModelScope.launch {
-        // Không cho phép xóa thư mục mặc định
-        if (folder.id == 1) return@launch
-        repository.deleteFolderAndNotes(folder)
-    }
-
-    fun togglePin(note: Note) = viewModelScope.launch {
-        val updatedNote = note.copy(isPinned = !note.isPinned)
-        repository.update(updatedNote)
     }
 }

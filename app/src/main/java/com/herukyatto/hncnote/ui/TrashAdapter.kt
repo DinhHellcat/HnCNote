@@ -27,6 +27,6 @@ class TrashAdapter(
         holder.itemView.setOnClickListener(null)
         holder.favoriteIcon.setOnClickListener(null)
 
-        holder.bind(current, "") // query rỗng vì không có tìm kiếm
+        holder.bind(current, "", isInTrash = true)
     }
 }

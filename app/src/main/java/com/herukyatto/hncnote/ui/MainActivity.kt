@@ -128,7 +128,10 @@ class MainActivity : AppCompatActivity() {
                     recyclerView.visibility = View.VISIBLE
                     emptyStateLayout.visibility = View.GONE
                 }
-                noteAdapter.submitList(it)
+                // Cập nhật query cho adapter trước khi gửi danh sách
+                noteAdapter.searchQuery = noteViewModel.searchQueryState.value
+                // Dùng toList() để buộc adapter phải kiểm tra lại và vẽ highlight đúng
+                noteAdapter.submitList(it.toList())
             }
         }
 
@@ -144,10 +147,8 @@ class MainActivity : AppCompatActivity() {
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean = false
             override fun onQueryTextChange(newText: String?): Boolean {
-                val query = newText.orEmpty()
-                noteAdapter.searchQuery = query
-                noteViewModel.setSearchQuery(query)
-                noteAdapter.notifyDataSetChanged()
+                // Chỉ cần báo cho ViewModel, observer sẽ lo phần còn lại
+                noteViewModel.setSearchQuery(newText.orEmpty())
                 return true
             }
         })
@@ -157,6 +158,8 @@ class MainActivity : AppCompatActivity() {
         val fab = findViewById<FloatingActionButton>(R.id.addNoteFab)
         fab.setOnClickListener {
             val intent = Intent(this@MainActivity, NoteEditorActivity::class.java)
+            // Gửi kèm ID của thư mục hiện tại
+            intent.putExtra("EXTRA_FOLDER_ID", noteViewModel.currentFolderIdState.value)
             startActivity(intent)
         }
     }
